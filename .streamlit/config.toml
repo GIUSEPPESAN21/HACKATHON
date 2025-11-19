@@ -1,1 +1,7 @@
+[server]
+fileWatcherType = "none"
+headless = true
 
+[theme]
+base = "light"
+primaryColor = "#2ecc71"
