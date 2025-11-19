@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 class AgroSentimentAnalyzer:
     def __init__(self):
+        # --- CORRECCIÓN: Inicializamos self.model para evitar el AttributeError ---
+        self.model = None 
+        
         try:
             self.api_key = st.secrets.get("GEMINI_API_KEY")
             if not self.api_key:
@@ -23,8 +26,12 @@ class AgroSentimentAnalyzer:
 
             genai.configure(api_key=self.api_key)
             
+            # Indicamos a main.py que estamos listos (usamos True como bandera)
+            self.model = True 
+            
         except Exception as e:
             st.error(f"🤖 Error Crítico Configuración Gemini: {e}")
+            self.model = None
 
     def _parse_text_response(self, text_response):
         """Analiza la respuesta de texto plano para extraer clasificación y argumento."""
@@ -57,10 +64,10 @@ class AgroSentimentAnalyzer:
         """
         Analiza una noticia con estrategia de espera agresiva si se agota la cuota.
         """
+        # Verificación de seguridad
         if not self.api_key:
             return {"sentimiento": "Neutro", "explicacion": "Error: Sin API Key"}
 
-        # Prompt optimizado
         prompt = f"""
         Actúa como un analista de riesgos agroindustriales para el Valle del Cauca.
         
@@ -107,9 +114,7 @@ class AgroSentimentAnalyzer:
                 # MANEJO CRÍTICO DE ERROR 429
                 if "429" in error_msg or "quota" in error_msg.lower():
                     logger.warning(f"⚠️ Cuota agotada en {model_name}. Esperando 20s para recuperar...")
-                    # CAMBIO CLAVE: Esperar 20 segundos antes de intentar otro modelo
-                    # Esto previene que saturemos todos los modelos en 1 segundo.
-                    time.sleep(20) 
+                    time.sleep(20) # Pausa larga para recuperar cuota
                     continue
                 else:
                     logger.error(f"Error en {model_name}: {e}")
@@ -137,8 +142,7 @@ class AgroSentimentAnalyzer:
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            # CAMBIO CLAVE: Aumentado a 5 segundos.
-            # La capa gratuita permite ~15 RPM. 60/5 = 12 RPM (Seguro).
+            # Pausa de seguridad entre noticias
             time.sleep(5) 
             
         return results_sent, results_expl
@@ -165,7 +169,6 @@ class AgroSentimentAnalyzer:
                     "explicacion_ia": analysis["explicacion"],
                     "id_original": f"web_{int(time.time())}_{results.index(item)}"
                 })
-                # Pausa de seguridad aumentada
                 time.sleep(5)
             return analyzed_data
         except Exception as e:
