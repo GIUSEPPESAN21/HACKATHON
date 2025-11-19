@@ -1,6 +1,29 @@
 import streamlit as st
+import subprocess
+import sys
+
+# --- BLOQUE DE AUTO-INSTALACIÓN ---
+# Esto soluciona el error "ModuleNotFoundError" desde Python
+def instalar_librerias():
+    with st.spinner('Instalando librerías de IA en el servidor... (esto tarda 1 min)'):
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "pysentimiento", "torch", "transformers"])
+        except Exception as e:
+            st.error(f"Error al instalar: {e}")
+
+try:
+    # Intentamos importar
+    from pysentimiento import create_analyzer
+except ImportError:
+    # Si falla, instalamos y luego importamos
+    instalar_librerias()
+    from pysentimiento import create_analyzer
+# ----------------------------------
+
 import pandas as pd
-from pysentimiento import create_analyzer
+
+# ... AQUÍ SIGUE EL RESTO DE TU CÓDIGO (st.set_page_config, etc) ...
+# Asegúrate de NO volver a importar pysentimiento abajo.
 
 # 1. Configuración de la página
 st.set_page_config(page_title="Agro-Sentimiento", layout="wide")
