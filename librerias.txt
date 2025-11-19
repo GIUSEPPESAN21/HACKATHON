@@ -1,5 +1,6 @@
-streamlit 
-pysentimiento 
-torch
+streamlit
+pandas
 openpyxl
-create_analyzer
+pysentimiento
+torch
+transformers
