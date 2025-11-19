@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 class AgroSentimentAnalyzer:
     def __init__(self):
-        # Ya no inicializamos un único "self.model" aquí para evitar bloqueos
         try:
             self.api_key = st.secrets.get("GEMINI_API_KEY")
             if not self.api_key:
@@ -39,7 +38,7 @@ class AgroSentimentAnalyzer:
 
             if clasif_match:
                 raw_sent = clasif_match.group(1).strip().capitalize()
-                # Limpieza de caracteres extra
+                # Limpieza de caracteres extra y normalización
                 raw_sent = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", raw_sent)
                 
                 if "Positivo" in raw_sent: sentimiento = "Positivo"
@@ -56,7 +55,7 @@ class AgroSentimentAnalyzer:
 
     def analyze_news(self, text):
         """
-        Analiza una noticia probando múltiples modelos si se agota la cuota (Error 429).
+        Analiza una noticia con estrategia de espera agresiva si se agota la cuota.
         """
         if not self.api_key:
             return {"sentimiento": "Neutro", "explicacion": "Error: Sin API Key"}
@@ -77,12 +76,12 @@ class AgroSentimentAnalyzer:
         ARGUMENTO: [Explicación de 1 frase]
         """
 
-        # Lista de modelos ordenada por ESTABILIDAD DE CUOTA (Flash primero)
+        # Lista de modelos ordenada por EFICIENCIA DE CUOTA
         candidates = [
-            "gemini-1.5-flash",       # Mejor balance velocidad/cuota
-            "gemini-1.5-flash-8b",    # Backup ligero
-            "gemini-2.0-flash-exp",   # Experimental (falla mucho por cuota)
-            "gemini-1.5-pro"          # El más potente (lento)
+            "gemini-1.5-flash",       # El más rápido y con mejor cuota
+            "gemini-1.5-flash-8b",    # Versión ultra ligera de respaldo
+            "gemini-1.5-pro",         # Potente, pero más lento
+            "gemini-2.0-flash-exp"    # Experimental (Cuota muy baja, última opción)
         ]
 
         for model_name in candidates:
@@ -105,16 +104,18 @@ class AgroSentimentAnalyzer:
                 
             except Exception as e:
                 error_msg = str(e)
-                # Si es error de cuota (429), continuamos al siguiente modelo silenciosamente
+                # MANEJO CRÍTICO DE ERROR 429
                 if "429" in error_msg or "quota" in error_msg.lower():
-                    logger.warning(f"⚠️ Cuota agotada en {model_name}, cambiando modelo...")
-                    time.sleep(1) # Pequeña pausa antes de cambiar
+                    logger.warning(f"⚠️ Cuota agotada en {model_name}. Esperando 20s para recuperar...")
+                    # CAMBIO CLAVE: Esperar 20 segundos antes de intentar otro modelo
+                    # Esto previene que saturemos todos los modelos en 1 segundo.
+                    time.sleep(20) 
                     continue
                 else:
                     logger.error(f"Error en {model_name}: {e}")
                     continue
 
-        return {"sentimiento": "Neutro", "explicacion": "Sistema saturado (Intente en 1 min)"}
+        return {"sentimiento": "Neutro", "explicacion": "Sistema saturado por alta demanda."}
 
     def analyze_batch(self, df, progress_bar=None):
         results_sent = []
@@ -136,10 +137,9 @@ class AgroSentimentAnalyzer:
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            # AUMENTADO A 3.5 SEGUNDOS PARA EVITAR ERROR 429
-            # La capa gratuita permite aprox 15 requests por minuto.
-            # 60 seg / 15 req = 4 segundos de espera ideal.
-            time.sleep(3.5) 
+            # CAMBIO CLAVE: Aumentado a 5 segundos.
+            # La capa gratuita permite ~15 RPM. 60/5 = 12 RPM (Seguro).
+            time.sleep(5) 
             
         return results_sent, results_expl
 
@@ -165,8 +165,8 @@ class AgroSentimentAnalyzer:
                     "explicacion_ia": analysis["explicacion"],
                     "id_original": f"web_{int(time.time())}_{results.index(item)}"
                 })
-                # Pausa de seguridad
-                time.sleep(2)
+                # Pausa de seguridad aumentada
+                time.sleep(5)
             return analyzed_data
         except Exception as e:
             st.error(f"Error Web: {e}")
