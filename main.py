@@ -45,7 +45,7 @@ def main():
                 st.error(error)
             else:
                 st.subheader("Vista Previa")
-                st.dataframe(df[['titular', 'fecha']], use_container_width=True, hide_index=True)
+                st.dataframe(df[['titular', 'fecha']], width='stretch', hide_index=True)
                 
                 if st.button("🧠 Ejecutar Análisis Avanzado", type="primary"):
                     # CORRECCIÓN AQUÍ: Verificamos api_key en lugar de model
@@ -102,7 +102,7 @@ def main():
         with col_btn:
             st.write("") 
             st.write("") 
-            search_trigger = st.button("Buscar y Analizar", use_container_width=True)
+            search_trigger = st.button("Buscar y Analizar", use_container_width=False)
             
         if search_trigger:
             with st.spinner(f"Buscando '{query}' en la web y analizando con IA..."):
@@ -168,7 +168,7 @@ def main():
                          color_discrete_map={'Positivo':'#2ecc71', 'Negativo':'#e74c3c', 'Neutro':'#bdc3c7'},
                          hole=0.4,
                          title="Distribución de Sentimientos")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         else:
             st.info("Realiza un análisis (CSV o Web) para ver el Dashboard.")
 
