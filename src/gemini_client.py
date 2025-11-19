@@ -3,89 +3,125 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import streamlit as st
 from tenacity import retry, stop_after_attempt, wait_exponential
 import time
-import json
 import re
 import logging
 from duckduckgo_search import DDGS
 
-# Configuración básica de logging
+# Configuración de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class AgroSentimentAnalyzer:
     def __init__(self):
+        self.model = None
         try:
-            # Recuperación robusta de la API Key
+            # 1. Recuperación de API Key
             self.api_key = st.secrets.get("GEMINI_API_KEY")
             if not self.api_key:
                 self.api_key = st.secrets.get("gemini", {}).get("api_key")
             
             if not self.api_key:
                 st.error("⚠️ Falta GEMINI_API_KEY en secrets.toml")
-                self.model = None
-            else:
-                genai.configure(api_key=self.api_key)
-                self.model = True 
+                return
+
+            genai.configure(api_key=self.api_key)
+            
+            # 2. Selección Automática del Mejor Modelo Disponible (Tu lógica mejorada)
+            self.model = self._get_available_model()
             
         except Exception as e:
-            st.error(f"🤖 Error Configuración Gemini: {e}")
-            self.model = None
+            st.error(f"🤖 Error Crítico Configuración Gemini: {e}")
 
-    def _clean_json_string(self, json_string):
+    def _get_available_model(self):
         """
-        LIMPIEZA QUIRÚRGICA:
-        Extrae exclusivamente el objeto JSON usando índices, ignorando cualquier texto
-        introductorio o final que la IA pueda agregar.
+        Itera sobre una lista de modelos priorizada para encontrar uno funcional.
         """
-        try:
-            # 1. Eliminar bloques de código Markdown si existen
-            if "```" in json_string:
-                json_string = re.sub(r"```json\n?|```", "", json_string)
-            
-            # 2. Buscar matemáticamente donde empieza '{' y termina '}'
-            start = json_string.find('{')
-            end = json_string.rfind('}')
-            
-            if start != -1 and end != -1:
-                # Extraer solo el contenido JSON válido
-                return json_string[start:end+1]
-            
-            return json_string.strip()
-        except Exception as e:
-            logger.error(f"Error limpiando JSON: {e}")
-            return json_string
+        model_candidates = [
+            "gemini-2.0-flash-exp",       # El más rápido e inteligente (Experimental)
+            "gemini-1.5-pro",             # El más robusto (Estable)
+            "gemini-1.5-flash",           # El más rápido (Estable)
+            "gemini-1.5-flash-8b"         # Versión ligera
+        ]
 
-    def _get_robust_prompt(self, text):
-        return f"""
-        Eres un analista experto en riesgos agrícolas del Valle del Cauca.
+        for model_name in model_candidates:
+            try:
+                # Intentamos instanciar y hacer una prueba mínima de conexión (opcional)
+                model = genai.GenerativeModel(model_name)
+                logger.info(f"✅ Modelo activo: {model_name}")
+                return model
+            except Exception as e:
+                logger.warning(f"⚠️ Fallo modelo {model_name}: {e}")
+                continue
         
-        BASE DE CONOCIMIENTO (CRITERIOS ESTRICTOS):
-        [NEGATIVO]: Paro, bloqueo, minga, sequía, plaga, pérdidas, inseguridad, extorsión, caída precios, costos altos, crisis.
-        [POSITIVO]: Inversión, exportación, subsidio, tecnología, inauguración, alianza, superávit, cosecha récord.
-        [NEUTRO]: Informativo, boletín, reunión sin resultados, censo.
+        st.error("❌ No se pudo conectar con ningún modelo de Google Gemini.")
+        return None
 
-        TAREA:
-        Clasifica la siguiente noticia. Si detectas CUALQUIER riesgo (paro, clima, plaga), debe ser NEGATIVO. No seas neutral si hay riesgo.
-
-        Noticia: "{text}"
-
-        FORMATO JSON OBLIGATORIO:
-        {{
-            "sentimiento": "Positivo" | "Negativo" | "Neutro",
-            "explicacion": "Argumento de 5 a 10 palabras máximo."
-        }}
+    def _parse_text_response(self, text_response):
         """
+        Analiza la respuesta en texto plano y extrae la clasificación y el argumento.
+        Formato esperado:
+        CLASIFICACIÓN: Positivo
+        ARGUMENTO: Bla bla bla
+        """
+        sentimiento = "Neutro" # Default seguro
+        explicacion = "No se pudo extraer explicación."
+
+        try:
+            # Usamos Regex para buscar las etiquetas independientemente de espacios o mayúsculas
+            clasif_match = re.search(r"CLASIFICACIÓN:\s*([^\n]*)", text_response, re.IGNORECASE)
+            arg_match = re.search(r"ARGUMENTO:\s*(.*)", text_response, re.IGNORECASE | re.DOTALL)
+
+            if clasif_match:
+                raw_sent = clasif_match.group(1).strip().capitalize()
+                # Limpieza extra por si el modelo pone "Positivo." o "**Positivo**"
+                raw_sent = raw_sent.replace('.', '').replace('*', '')
+                if raw_sent in ["Positivo", "Negativo", "Neutro"]:
+                    sentimiento = raw_sent
+                # Corrección de "sesgos" comunes del modelo
+                elif "Riesgo" in raw_sent or "Alerta" in raw_sent: 
+                    sentimiento = "Negativo"
+
+            if arg_match:
+                explicacion = arg_match.group(1).strip()
+
+        except Exception as e:
+            logger.error(f"Error parseando respuesta IA: {e}")
+
+        return {"sentimiento": sentimiento, "explicacion": explicacion}
 
     def analyze_news(self, text):
-        if not self.api_key:
-            return {"sentimiento": "Neutro", "explicacion": "Falta API Key"}
+        if not self.model:
+            return {"sentimiento": "Neutro", "explicacion": "Error: Sin Modelo IA"}
 
-        # Configuración optimizada para forzar estructura
+        # Prompt enfocado en TEXTO, no JSON
+        prompt = f"""
+        Actúa como un analista senior de riesgos agroindustriales para el Valle del Cauca.
+        Tu trabajo es clasificar noticias para un sistema de Alertas Tempranas.
+
+        CRITERIOS ESTRICTOS DE CLASIFICACIÓN:
+        🔴 NEGATIVO (Prioridad Alta):
+           - Palabras clave: Paro, bloqueo, minga, invasión, sequía, fenómeno del niño, plagas, pérdidas, inseguridad, extorsión, caída de precios, crisis.
+           - REGLA DE ORO: Si hay CUALQUIER mención de riesgo para la producción o transporte, ES NEGATIVO. No seas neutral ante el riesgo.
+
+        🟢 POSITIVO:
+           - Palabras clave: Inversión, exportación, subsidio, tecnología, alianza, superávit, cosecha récord.
+
+        ⚪ NEUTRO:
+           - Solo para boletines informativos, censos o reuniones sin resultados concretos.
+
+        NOTICIA A ANALIZAR:
+        "{text}"
+
+        INSTRUCCIONES DE SALIDA:
+        Responde estrictamente con este formato de texto (sin markdown, sin json):
+
+        CLASIFICACIÓN: [Positivo, Negativo o Neutro]
+        ARGUMENTO: [Tu explicación breve y directa de por qué]
+        """
+
         generation_config = {
-            "temperature": 0.1, # Temperatura casi cero para máxima obediencia
-            "top_p": 0.95,
+            "temperature": 0.3, # Baja creatividad para ser preciso
             "max_output_tokens": 500,
-            "response_mime_type": "application/json" # Forzado nativo de JSON
         }
 
         safety_settings = {
@@ -95,51 +131,24 @@ class AgroSentimentAnalyzer:
             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
         }
 
-        # Lista de modelos priorizada
-        # Usamos 1.5 Flash primero porque es el más estable con JSON Mode
-        model_candidates = [
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
-            "gemini-2.0-flash-exp"
-        ]
+        try:
+            # Llamada directa sin forzar JSON
+            response = self.model.generate_content(
+                prompt, 
+                generation_config=generation_config,
+                safety_settings=safety_settings
+            )
 
-        for modelo_nombre in model_candidates:
-            try:
-                model = genai.GenerativeModel(
-                    model_name=modelo_nombre,
-                    generation_config=generation_config,
-                    safety_settings=safety_settings
-                )
+            if response.parts:
+                # Procesamos el texto plano que devuelve el modelo
+                return self._parse_text_response(response.text)
+            else:
+                return {"sentimiento": "Neutro", "explicacion": "Bloqueo de Seguridad (Google)"}
 
-                response = model.generate_content(self._get_robust_prompt(text))
-                
-                # Verificación de bloqueo de seguridad
-                if not response.parts:
-                    logger.warning(f"Bloqueo de seguridad en {modelo_nombre}")
-                    continue
-
-                cleaned_text = self._clean_json_string(response.text)
-                
-                try:
-                    result = json.loads(cleaned_text)
-                    sent = result.get("sentimiento", "Neutro").capitalize()
-                    expl = result.get("explicacion", "Análisis IA")
-                    
-                    # Normalización
-                    if sent not in ["Positivo", "Negativo", "Neutro"]:
-                        sent = "Neutro"
-                        
-                    return {"sentimiento": sent, "explicacion": expl}
-                    
-                except json.JSONDecodeError:
-                    logger.warning(f"JSON inválido en {modelo_nombre}: {cleaned_text}")
-                    continue 
-
-            except Exception as e:
-                logger.error(f"Error en modelo {modelo_nombre}: {e}")
-                continue
-        
-        return {"sentimiento": "Neutro", "explicacion": "Error de Procesamiento (Reintentar)"}
+        except Exception as e:
+            logger.error(f"Error en inferencia IA: {e}")
+            # Fallback simple si falla la API
+            return {"sentimiento": "Neutro", "explicacion": "Error de Conexión API"}
 
     def analyze_batch(self, df, progress_bar=None):
         results_sent = []
@@ -161,7 +170,7 @@ class AgroSentimentAnalyzer:
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            time.sleep(0.5) # Pausa para estabilidad
+            time.sleep(0.5) # Pausa de cortesía para no saturar
             
         return results_sent, results_expl
 
