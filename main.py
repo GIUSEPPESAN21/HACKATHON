@@ -29,9 +29,9 @@ def main():
     st.title("📊 Monitor de Riesgos Agroindustriales - R9")
     st.markdown("Sistema inteligente de clasificación de noticias para el Valle del Cauca.")
     
-    # Añadimos una nueva pestaña para la búsqueda web
     tab1, tab2, tab3, tab4 = st.tabs(["📂 Análisis CSV", "🌐 Noticias en Vivo", "📈 Dashboard", "🗄️ Historial"])
 
+    # Inicializamos el analizador
     analyzer = AgroSentimentAnalyzer()
 
     # --- TAB 1: ANÁLISIS CSV ---
@@ -48,10 +48,10 @@ def main():
                 st.dataframe(df[['titular', 'fecha']], use_container_width=True, hide_index=True)
                 
                 if st.button("🧠 Ejecutar Análisis Avanzado", type="primary"):
-                    if analyzer.model:
+                    # CORRECCIÓN AQUÍ: Verificamos api_key en lugar de model
+                    if analyzer.api_key:
                         with st.spinner('Identificando palabras clave y generando argumentos...'):
                             progress = st.progress(0)
-                            # Ahora recibimos dos listas: sentimientos y explicaciones
                             sents, expls = analyzer.analyze_batch(df, progress)
                             
                             df['sentimiento_ia'] = sents
@@ -60,16 +60,14 @@ def main():
                             st.session_state['last_analysis'] = df
                             st.success("¡Análisis Inteligente Completado!")
                     else:
-                        st.error("Error de API Key")
+                        st.error("Error: No se encontró la API Key de Gemini en los secretos.")
 
         if 'last_analysis' in st.session_state:
             df_res = st.session_state['last_analysis']
             st.divider()
             
-            # Mostrar resultados con columnas expandibles para la explicación
             st.subheader("Resultados Clasificados")
             
-            # Iterar para mostrar formato bonito
             for index, row in df_res.iterrows():
                 color = "gray"
                 if row['sentimiento_ia'] == 'Positivo': color = "green"
@@ -84,17 +82,17 @@ def main():
                 if success: st.success(msg)
                 else: st.error(msg)
 
-    # --- TAB 2: BÚSQUEDA WEB (NUEVO) ---
+    # --- TAB 2: BÚSQUEDA WEB ---
     with tab2:
         st.header("🔍 Radar de Noticias en Tiempo Real")
         st.markdown("Busca eventos recientes en la web y clasifícalos al instante.")
         
         col_search, col_btn = st.columns([3, 1])
         with col_search:
-            query = st.text_input("Tema de búsqueda", value="Sector agroindustrial Valle del Cauca")
+            query = st.text_input("Tema de búsqueda", value="Sector agroindustria Valle del Cauca")
         with col_btn:
-            st.write("") # Espacio
-            st.write("") # Espacio
+            st.write("") 
+            st.write("") 
             search_trigger = st.button("Buscar y Analizar", use_container_width=True)
             
         if search_trigger:
@@ -129,7 +127,6 @@ def main():
 
     # --- TAB 3: DASHBOARD ---
     with tab3:
-        # Combinar datos si existen
         data_source = None
         if 'last_analysis' in st.session_state:
             data_source = st.session_state['last_analysis']
