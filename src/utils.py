@@ -3,27 +3,28 @@ import streamlit as st
 
 def load_and_validate_csv(uploaded_file):
     """
-    Carga y valida el CSV de noticias.
-    Maneja delimitadores comunes (; o ,) y verifica columnas requeridas.
+    Carga y valida el CSV de noticias forzando el separador correcto
+    para el dataset R9.
     """
     try:
-        # Intentar detectar delimitador leyendo la primera línea o probando
-        # Dado el dataset del usuario, priorizamos ';'
-        df = pd.read_csv(uploaded_file, sep=';')
+        # 1. Forzamos separador de punto y coma (Estándar del archivo R9)
+        # Usamos 'dtype=str' para leer todo como texto al principio y evitar errores de conversión
+        df = pd.read_csv(uploaded_file, sep=';', dtype=str)
         
+        # Si falló y solo leyó 1 columna, intentamos con coma
         if len(df.columns) < 2:
-            # Fallback si no se parseó bien
             uploaded_file.seek(0)
-            df = pd.read_csv(uploaded_file, sep=',')
+            df = pd.read_csv(uploaded_file, sep=',', dtype=str)
 
-        # Normalización de nombres de columnas (limpieza)
+        # 2. Limpieza de nombres de columnas (eliminar espacios extra)
         df.columns = [c.strip() for c in df.columns]
         
-        # Mapeo de columnas esperadas (flexibilidad)
+        # 3. Mapeo inteligente de columnas
         required_columns = {
             'Headline': ['Titular', 'Titular de la Noticia', 'Headline', 'Title'],
             'Body': ['Cuerpo', 'Cuerpo del Texto (resumen)', 'Body', 'Content', 'Resumen'],
-            'Date': ['Fecha', 'Fecha Publicación', 'Date']
+            'Date': ['Fecha', 'Fecha Publicación', 'Date', 'Fecha Publicacion'],
+            'ID': ['ID', 'id', 'Id']
         }
         
         mapped_cols = {}
@@ -36,29 +37,29 @@ def load_and_validate_csv(uploaded_file):
                     mapped_cols[key] = p
                     found = True
                     break
-            if not found:
+            if not found and key != 'ID': # El ID es opcional, lo podemos generar
                 missing.append(key)
 
         if missing:
-            return None, f"Faltan columnas requeridas: {', '.join(missing)}. Verifique el formato CSV."
+            return None, f"❌ Faltan columnas: {', '.join(missing)}. Revisa que el CSV use punto y coma (;)."
 
-        # Renombrar para estandarizar uso interno
-        df_clean = df.rename(columns={
-            mapped_cols['Headline']: 'titular',
-            mapped_cols['Body']: 'cuerpo',
-            mapped_cols['Date']: 'fecha'
-        })
+        # 4. Crear DataFrame limpio
+        df_clean = pd.DataFrame()
         
-        # Mantener ID si existe, sino crear uno temporal
-        if 'ID' in df.columns:
-            df_clean['id_original'] = df['ID']
+        # Manejo del ID: Si existe, úsalo. Si no, usa el índice + 1.
+        if 'ID' in mapped_cols:
+            df_clean['id_original'] = df[mapped_cols['ID']].astype(str)
         else:
-            df_clean['id_original'] = df.index + 1
+            df_clean['id_original'] = (df.index + 1).astype(str)
 
-        # Limpieza básica de texto
-        df_clean['texto_completo'] = df_clean['titular'].fillna('') + ". " + df_clean['cuerpo'].fillna('')
+        df_clean['titular'] = df[mapped_cols['Headline']].fillna('Sin Titular')
+        df_clean['cuerpo'] = df[mapped_cols['Body']].fillna('')
+        df_clean['fecha'] = df[mapped_cols['Date']].fillna('')
+
+        # Crear texto completo para la IA
+        df_clean['texto_completo'] = df_clean['titular'] + ". " + df_clean['cuerpo']
         
         return df_clean, None
 
     except Exception as e:
-        return None, f"Error procesando el archivo: {str(e)}"
+        return None, f"Error crítico leyendo el archivo: {str(e)}"
