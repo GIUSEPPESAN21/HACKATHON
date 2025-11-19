@@ -1,7 +1,6 @@
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import streamlit as st
-from tenacity import retry, stop_after_attempt, wait_exponential
 import time
 import re
 import logging
@@ -13,9 +12,8 @@ logger = logging.getLogger(__name__)
 
 class AgroSentimentAnalyzer:
     def __init__(self):
-        self.model = None
+        # Ya no inicializamos un único "self.model" aquí para evitar bloqueos
         try:
-            # 1. Recuperación de API Key
             self.api_key = st.secrets.get("GEMINI_API_KEY")
             if not self.api_key:
                 self.api_key = st.secrets.get("gemini", {}).get("api_key")
@@ -26,129 +24,97 @@ class AgroSentimentAnalyzer:
 
             genai.configure(api_key=self.api_key)
             
-            # 2. Selección Automática del Mejor Modelo Disponible (Tu lógica mejorada)
-            self.model = self._get_available_model()
-            
         except Exception as e:
             st.error(f"🤖 Error Crítico Configuración Gemini: {e}")
 
-    def _get_available_model(self):
-        """
-        Itera sobre una lista de modelos priorizada para encontrar uno funcional.
-        """
-        model_candidates = [
-            "gemini-2.0-flash-exp",       # El más rápido e inteligente (Experimental)
-            "gemini-1.5-pro",             # El más robusto (Estable)
-            "gemini-1.5-flash",           # El más rápido (Estable)
-            "gemini-1.5-flash-8b"         # Versión ligera
-        ]
-
-        for model_name in model_candidates:
-            try:
-                # Intentamos instanciar y hacer una prueba mínima de conexión (opcional)
-                model = genai.GenerativeModel(model_name)
-                logger.info(f"✅ Modelo activo: {model_name}")
-                return model
-            except Exception as e:
-                logger.warning(f"⚠️ Fallo modelo {model_name}: {e}")
-                continue
-        
-        st.error("❌ No se pudo conectar con ningún modelo de Google Gemini.")
-        return None
-
     def _parse_text_response(self, text_response):
-        """
-        Analiza la respuesta en texto plano y extrae la clasificación y el argumento.
-        Formato esperado:
-        CLASIFICACIÓN: Positivo
-        ARGUMENTO: Bla bla bla
-        """
-        sentimiento = "Neutro" # Default seguro
-        explicacion = "No se pudo extraer explicación."
+        """Analiza la respuesta de texto plano para extraer clasificación y argumento."""
+        sentimiento = "Neutro"
+        explicacion = "Análisis automático."
 
         try:
-            # Usamos Regex para buscar las etiquetas independientemente de espacios o mayúsculas
+            # Regex mejorado para capturar contenido multilínea
             clasif_match = re.search(r"CLASIFICACIÓN:\s*([^\n]*)", text_response, re.IGNORECASE)
             arg_match = re.search(r"ARGUMENTO:\s*(.*)", text_response, re.IGNORECASE | re.DOTALL)
 
             if clasif_match:
                 raw_sent = clasif_match.group(1).strip().capitalize()
-                # Limpieza extra por si el modelo pone "Positivo." o "**Positivo**"
-                raw_sent = raw_sent.replace('.', '').replace('*', '')
-                if raw_sent in ["Positivo", "Negativo", "Neutro"]:
-                    sentimiento = raw_sent
-                # Corrección de "sesgos" comunes del modelo
-                elif "Riesgo" in raw_sent or "Alerta" in raw_sent: 
-                    sentimiento = "Negativo"
+                # Limpieza de caracteres extra
+                raw_sent = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", raw_sent)
+                
+                if "Positivo" in raw_sent: sentimiento = "Positivo"
+                elif "Negativo" in raw_sent: sentimiento = "Negativo"
+                elif "Neutro" in raw_sent: sentimiento = "Neutro"
 
             if arg_match:
                 explicacion = arg_match.group(1).strip()
 
         except Exception as e:
-            logger.error(f"Error parseando respuesta IA: {e}")
+            logger.error(f"Error parseando respuesta: {e}")
 
         return {"sentimiento": sentimiento, "explicacion": explicacion}
 
     def analyze_news(self, text):
-        if not self.model:
-            return {"sentimiento": "Neutro", "explicacion": "Error: Sin Modelo IA"}
+        """
+        Analiza una noticia probando múltiples modelos si se agota la cuota (Error 429).
+        """
+        if not self.api_key:
+            return {"sentimiento": "Neutro", "explicacion": "Error: Sin API Key"}
 
-        # Prompt enfocado en TEXTO, no JSON
+        # Prompt optimizado
         prompt = f"""
-        Actúa como un analista senior de riesgos agroindustriales para el Valle del Cauca.
-        Tu trabajo es clasificar noticias para un sistema de Alertas Tempranas.
+        Actúa como un analista de riesgos agroindustriales para el Valle del Cauca.
+        
+        CRITERIOS:
+        🔴 NEGATIVO: Paro, bloqueo, sequía, plaga, pérdidas, inseguridad, extorsión, crisis, caída de precios.
+        🟢 POSITIVO: Inversión, exportación, subsidio, tecnología, alianza, superávit, cosecha récord.
+        ⚪ NEUTRO: Boletines informativos sin impacto directo.
 
-        CRITERIOS ESTRICTOS DE CLASIFICACIÓN:
-        🔴 NEGATIVO (Prioridad Alta):
-           - Palabras clave: Paro, bloqueo, minga, invasión, sequía, fenómeno del niño, plagas, pérdidas, inseguridad, extorsión, caída de precios, crisis.
-           - REGLA DE ORO: Si hay CUALQUIER mención de riesgo para la producción o transporte, ES NEGATIVO. No seas neutral ante el riesgo.
+        NOTICIA: "{text}"
 
-        🟢 POSITIVO:
-           - Palabras clave: Inversión, exportación, subsidio, tecnología, alianza, superávit, cosecha récord.
-
-        ⚪ NEUTRO:
-           - Solo para boletines informativos, censos o reuniones sin resultados concretos.
-
-        NOTICIA A ANALIZAR:
-        "{text}"
-
-        INSTRUCCIONES DE SALIDA:
-        Responde estrictamente con este formato de texto (sin markdown, sin json):
-
-        CLASIFICACIÓN: [Positivo, Negativo o Neutro]
-        ARGUMENTO: [Tu explicación breve y directa de por qué]
+        RESPONDE EXACTAMENTE ASÍ:
+        CLASIFICACIÓN: [Positivo/Negativo/Neutro]
+        ARGUMENTO: [Explicación de 1 frase]
         """
 
-        generation_config = {
-            "temperature": 0.3, # Baja creatividad para ser preciso
-            "max_output_tokens": 500,
-        }
+        # Lista de modelos ordenada por ESTABILIDAD DE CUOTA (Flash primero)
+        candidates = [
+            "gemini-1.5-flash",       # Mejor balance velocidad/cuota
+            "gemini-1.5-flash-8b",    # Backup ligero
+            "gemini-2.0-flash-exp",   # Experimental (falla mucho por cuota)
+            "gemini-1.5-pro"          # El más potente (lento)
+        ]
 
-        safety_settings = {
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-        }
+        for model_name in candidates:
+            try:
+                model = genai.GenerativeModel(
+                    model_name,
+                    generation_config={"temperature": 0.1, "max_output_tokens": 300},
+                    safety_settings={
+                        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                    }
+                )
+                
+                response = model.generate_content(prompt)
+                
+                if response.parts:
+                    return self._parse_text_response(response.text)
+                
+            except Exception as e:
+                error_msg = str(e)
+                # Si es error de cuota (429), continuamos al siguiente modelo silenciosamente
+                if "429" in error_msg or "quota" in error_msg.lower():
+                    logger.warning(f"⚠️ Cuota agotada en {model_name}, cambiando modelo...")
+                    time.sleep(1) # Pequeña pausa antes de cambiar
+                    continue
+                else:
+                    logger.error(f"Error en {model_name}: {e}")
+                    continue
 
-        try:
-            # Llamada directa sin forzar JSON
-            response = self.model.generate_content(
-                prompt, 
-                generation_config=generation_config,
-                safety_settings=safety_settings
-            )
-
-            if response.parts:
-                # Procesamos el texto plano que devuelve el modelo
-                return self._parse_text_response(response.text)
-            else:
-                return {"sentimiento": "Neutro", "explicacion": "Bloqueo de Seguridad (Google)"}
-
-        except Exception as e:
-            logger.error(f"Error en inferencia IA: {e}")
-            # Fallback simple si falla la API
-            return {"sentimiento": "Neutro", "explicacion": "Error de Conexión API"}
+        return {"sentimiento": "Neutro", "explicacion": "Sistema saturado (Intente en 1 min)"}
 
     def analyze_batch(self, df, progress_bar=None):
         results_sent = []
@@ -170,7 +136,10 @@ class AgroSentimentAnalyzer:
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            time.sleep(0.5) # Pausa de cortesía para no saturar
+            # AUMENTADO A 3.5 SEGUNDOS PARA EVITAR ERROR 429
+            # La capa gratuita permite aprox 15 requests por minuto.
+            # 60 seg / 15 req = 4 segundos de espera ideal.
+            time.sleep(3.5) 
             
         return results_sent, results_expl
 
@@ -196,7 +165,8 @@ class AgroSentimentAnalyzer:
                     "explicacion_ia": analysis["explicacion"],
                     "id_original": f"web_{int(time.time())}_{results.index(item)}"
                 })
-                time.sleep(0.5)
+                # Pausa de seguridad
+                time.sleep(2)
             return analyzed_data
         except Exception as e:
             st.error(f"Error Web: {e}")
