@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 
 class AgroSentimentAnalyzer:
     def __init__(self):
-        # --- CORRECCIÓN: Inicializamos self.model para evitar el AttributeError ---
-        self.model = None 
+        # INICIALIZACIÓN SEGURA: Definimos atributos por defecto para evitar AttributeError
+        self.api_key = None
+        self.model = None # Se mantiene por compatibilidad, aunque usamos rotación dinámica
         
         try:
             self.api_key = st.secrets.get("GEMINI_API_KEY")
@@ -25,13 +26,10 @@ class AgroSentimentAnalyzer:
                 return
 
             genai.configure(api_key=self.api_key)
-            
-            # Indicamos a main.py que estamos listos (usamos True como bandera)
-            self.model = True 
+            self.model = True # Bandera para indicar que estamos listos
             
         except Exception as e:
             st.error(f"🤖 Error Crítico Configuración Gemini: {e}")
-            self.model = None
 
     def _parse_text_response(self, text_response):
         """Analiza la respuesta de texto plano para extraer clasificación y argumento."""
@@ -39,13 +37,12 @@ class AgroSentimentAnalyzer:
         explicacion = "Análisis automático."
 
         try:
-            # Regex mejorado para capturar contenido multilínea
             clasif_match = re.search(r"CLASIFICACIÓN:\s*([^\n]*)", text_response, re.IGNORECASE)
             arg_match = re.search(r"ARGUMENTO:\s*(.*)", text_response, re.IGNORECASE | re.DOTALL)
 
             if clasif_match:
                 raw_sent = clasif_match.group(1).strip().capitalize()
-                # Limpieza de caracteres extra y normalización
+                # Limpieza de caracteres extra
                 raw_sent = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", raw_sent)
                 
                 if "Positivo" in raw_sent: sentimiento = "Positivo"
@@ -64,7 +61,6 @@ class AgroSentimentAnalyzer:
         """
         Analiza una noticia con estrategia de espera agresiva si se agota la cuota.
         """
-        # Verificación de seguridad
         if not self.api_key:
             return {"sentimiento": "Neutro", "explicacion": "Error: Sin API Key"}
 
@@ -111,10 +107,10 @@ class AgroSentimentAnalyzer:
                 
             except Exception as e:
                 error_msg = str(e)
-                # MANEJO CRÍTICO DE ERROR 429
+                # MANEJO CRÍTICO DE ERROR 429 (Cuota Excedida)
                 if "429" in error_msg or "quota" in error_msg.lower():
                     logger.warning(f"⚠️ Cuota agotada en {model_name}. Esperando 20s para recuperar...")
-                    time.sleep(20) # Pausa larga para recuperar cuota
+                    time.sleep(20) # Pausa larga de seguridad
                     continue
                 else:
                     logger.error(f"Error en {model_name}: {e}")
@@ -142,7 +138,7 @@ class AgroSentimentAnalyzer:
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            # Pausa de seguridad entre noticias
+            # Pausa de seguridad entre noticias (5 segundos para evitar bloqueo)
             time.sleep(5) 
             
         return results_sent, results_expl
