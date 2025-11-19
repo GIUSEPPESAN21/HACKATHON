@@ -152,18 +152,25 @@ ARGUMENTO: [Explicación clara de 1-2 frases en español sobre por qué clasific
 IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin texto adicional."""
 
         # Lista de modelos ordenada por EFICIENCIA DE CUOTA
+        # NOTA: Los nombres de modelos deben ser exactos según la API de Gemini
+        # Usar nombres sin sufijos adicionales y verificar disponibilidad
         candidates = [
-            "gemini-1.5-flash",       # El más rápido y con mejor cuota
-            "gemini-1.5-flash-8b",    # Versión ultra ligera de respaldo
-            "gemini-1.5-pro",         # Potente, pero más lento
-            "gemini-2.0-flash-exp"    # Experimental (Cuota muy baja, última opción)
+            "gemini-1.5-flash",        # Modelo flash (más rápido, mejor cuota)
+            "gemini-1.5-pro",          # Modelo pro (más potente)
+            "gemini-pro",               # Modelo estándar (compatibilidad legacy)
         ]
 
         for model_name in candidates:
             try:
+                # Intentar crear el modelo - si el nombre no existe, generará error
                 model = genai.GenerativeModel(
                     model_name,
-                    generation_config={"temperature": 0.1, "max_output_tokens": 300},
+                    generation_config={
+                        "temperature": 0.1, 
+                        "max_output_tokens": 300,
+                        "top_p": 0.8,
+                        "top_k": 40
+                    },
                     safety_settings={
                         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
@@ -174,22 +181,29 @@ IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin 
                 
                 response = model.generate_content(prompt)
                 
-                if response.parts:
+                if response.parts and response.text:
                     resultado = self._parse_text_response(response.text)
                     # Log para debugging (solo en desarrollo)
                     if resultado["sentimiento"] == "Neutro":
                         logger.info(f"Clasificación Neutro detectada. Respuesta Gemini: {response.text[:200]}")
+                    logger.info(f"✅ Modelo {model_name} funcionó correctamente")
                     return resultado
+                else:
+                    logger.warning(f"⚠️ Modelo {model_name} no retornó contenido válido")
+                    continue
                 
             except Exception as e:
                 error_msg = str(e)
-                # MANEJO CRÍTICO DE ERROR 429 (Cuota Excedida)
-                if "429" in error_msg or "quota" in error_msg.lower():
+                # Manejo de errores específicos
+                if "404" in error_msg or "not found" in error_msg.lower():
+                    logger.warning(f"⚠️ Modelo {model_name} no encontrado (404). Probando siguiente modelo...")
+                    continue
+                elif "429" in error_msg or "quota" in error_msg.lower() or "rate limit" in error_msg.lower():
                     logger.warning(f"⚠️ Cuota agotada en {model_name}. Esperando 20s para recuperar...")
                     time.sleep(20) # Pausa larga de seguridad
                     continue
                 else:
-                    logger.error(f"Error en {model_name}: {e}")
+                    logger.error(f"❌ Error en {model_name}: {error_msg[:200]}")
                     continue
 
         # Si todos los modelos fallaron, retornar error explícito en lugar de "Neutro" por defecto
