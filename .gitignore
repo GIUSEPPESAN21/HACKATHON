@@ -1,0 +1,19 @@
+Entornos virtuales (¡Culpable principal!)
+
+venv/
+env/
+.env
+.venv/
+
+Archivos temporales de Python
+
+pycache/
+*.py[cod]
+
+Streamlit
+
+.streamlit/secrets.toml
+
+Datos grandes (si aplica)
+
+*.csv
