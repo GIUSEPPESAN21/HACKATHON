@@ -2,3 +2,4 @@ streamlit
 pysentimiento 
 torch
 openpyxl
+create_analyzer
