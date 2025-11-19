@@ -24,152 +24,135 @@ class AgroSentimentAnalyzer:
                 st.error("⚠️ Falta GEMINI_API_KEY en secrets.toml")
                 self.model = None
             else:
-                # Configuración inicial (se re-configura en cada llamada para robustez)
                 genai.configure(api_key=self.api_key)
-                self.model = True # Flag simple para indicar que estamos listos
+                self.model = True 
             
         except Exception as e:
             st.error(f"🤖 Error Configuración Gemini: {e}")
             self.model = None
 
     def _clean_json_string(self, json_string):
-        """Limpia la respuesta de bloques markdown."""
+        """
+        LIMPIEZA QUIRÚRGICA:
+        Extrae exclusivamente el objeto JSON usando índices, ignorando cualquier texto
+        introductorio o final que la IA pueda agregar.
+        """
         try:
+            # 1. Eliminar bloques de código Markdown si existen
             if "```" in json_string:
                 json_string = re.sub(r"```json\n?|```", "", json_string)
+            
+            # 2. Buscar matemáticamente donde empieza '{' y termina '}'
+            start = json_string.find('{')
+            end = json_string.rfind('}')
+            
+            if start != -1 and end != -1:
+                # Extraer solo el contenido JSON válido
+                return json_string[start:end+1]
+            
             return json_string.strip()
-        except:
+        except Exception as e:
+            logger.error(f"Error limpiando JSON: {e}")
             return json_string
 
     def _get_robust_prompt(self, text):
-        """
-        Prompt optimizado con tus criterios específicos para el Valle del Cauca.
-        Adaptado para retornar JSON y mantener compatibilidad con el sistema.
-        """
         return f"""
-        Eres un analista senior de riesgos agroindustriales especializado en la región del Valle del Cauca, Colombia. 
-        El sistema de alertas tempranas requiere clasificaciones precisas.
+        Eres un analista experto en riesgos agrícolas del Valle del Cauca.
+        
+        BASE DE CONOCIMIENTO (CRITERIOS ESTRICTOS):
+        [NEGATIVO]: Paro, bloqueo, minga, sequía, plaga, pérdidas, inseguridad, extorsión, caída precios, costos altos, crisis.
+        [POSITIVO]: Inversión, exportación, subsidio, tecnología, inauguración, alianza, superávit, cosecha récord.
+        [NEUTRO]: Informativo, boletín, reunión sin resultados, censo.
 
-        Criterios de clasificación:
-        NEGATIVO: Plagas, sequías, fenómeno del niño, paros armados, bloqueos de vías, caída de precios, pérdidas económicas, inseguridad rural, uso excesivo de químicos.
-        POSITIVO: Nuevas inversiones, subsidios del gobierno, tecnología agrícola, aumento de exportaciones, clima favorable, alianzas productivas, apertura de mercados.
-        NEUTRO: Noticias meramente informativas, nombramientos administrativos, boletines técnicos sin impacto económico directo inmediato.
+        TAREA:
+        Clasifica la siguiente noticia. Si detectas CUALQUIER riesgo (paro, clima, plaga), debe ser NEGATIVO. No seas neutral si hay riesgo.
 
-        Instrucciones Críticas:
-        1. Evita confundir medidas preventivas con crisis actuales.
-        2. Distingue impacto económico directo vs potencial.
-        3. Clasifica según el impacto predominante.
-        4. Ignora el tono emocional, enfócate en el contenido factual.
+        Noticia: "{text}"
 
-        Noticia a analizar: "{text}"
-
-        SALIDA OBLIGATORIA (FORMATO JSON):
-        Para compatibilidad con el sistema, debes responder estrictamente con este JSON:
+        FORMATO JSON OBLIGATORIO:
         {{
             "sentimiento": "Positivo" | "Negativo" | "Neutro",
-            "explicacion": "Breve justificación (max 15 palabras) basada en tus criterios."
+            "explicacion": "Argumento de 5 a 10 palabras máximo."
         }}
         """
 
     def analyze_news(self, text):
-        """
-        FUNCIÓN CORREGIDA Y OPTIMIZADA (Basada en tu solicitud v2.0)
-        - Itera sobre múltiples modelos (2.0 experimental -> 1.5 stable).
-        - Manejo de errores robusto.
-        """
         if not self.api_key:
-            return {"sentimiento": "Neutro", "explicacion": "Error Configuración"}
+            return {"sentimiento": "Neutro", "explicacion": "Falta API Key"}
 
-        # Configuración de generación optimizada para análisis
+        # Configuración optimizada para forzar estructura
         generation_config = {
-            "temperature": 0.3, # Baja temperatura para mayor precisión
+            "temperature": 0.1, # Temperatura casi cero para máxima obediencia
             "top_p": 0.95,
-            "top_k": 40,
-            "max_output_tokens": 1024,
-            "response_mime_type": "application/json" # Forzamos JSON nativamente
+            "max_output_tokens": 500,
+            "response_mime_type": "application/json" # Forzado nativo de JSON
         }
 
         safety_settings = {
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
         }
 
-        # Lista de modelos priorizada (Tu lista solicitada)
+        # Lista de modelos priorizada
+        # Usamos 1.5 Flash primero porque es el más estable con JSON Mode
         model_candidates = [
-            "gemini-2.0-flash-exp",       # Prioridad 1: Experimental rápido
-            "gemini-1.5-flash",           # Prioridad 2: Estable rápido
-            "gemini-1.5-pro",             # Prioridad 3: Estable potente
-            "gemini-1.5-flash-8b"         # Prioridad 4: Ultraligero
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+            "gemini-2.0-flash-exp"
         ]
-
-        last_error = None
 
         for modelo_nombre in model_candidates:
             try:
-                # Instanciar modelo específico
                 model = genai.GenerativeModel(
                     model_name=modelo_nombre,
                     generation_config=generation_config,
                     safety_settings=safety_settings
                 )
 
-                # Intentar generar contenido
                 response = model.generate_content(self._get_robust_prompt(text))
                 
-                if response.parts:
-                    cleaned_text = self._clean_json_string(response.text)
+                # Verificación de bloqueo de seguridad
+                if not response.parts:
+                    logger.warning(f"Bloqueo de seguridad en {modelo_nombre}")
+                    continue
+
+                cleaned_text = self._clean_json_string(response.text)
+                
+                try:
+                    result = json.loads(cleaned_text)
+                    sent = result.get("sentimiento", "Neutro").capitalize()
+                    expl = result.get("explicacion", "Análisis IA")
                     
-                    # Guardamos qué modelo se usó (útil para depuración)
-                    if 'model_usage_stats' not in st.session_state:
-                        st.session_state['model_usage_stats'] = {}
-                    st.session_state['model_usage_stats'][modelo_nombre] = st.session_state['model_usage_stats'].get(modelo_nombre, 0) + 1
+                    # Normalización
+                    if sent not in ["Positivo", "Negativo", "Neutro"]:
+                        sent = "Neutro"
+                        
+                    return {"sentimiento": sent, "explicacion": expl}
                     
-                    try:
-                        result = json.loads(cleaned_text)
-                        sent = result.get("sentimiento", "Neutro").capitalize()
-                        expl = result.get("explicacion", "Análisis automático")
-                        
-                        # Validación final
-                        if sent not in ["Positivo", "Negativo", "Neutro"]:
-                            sent = "Neutro"
-                            
-                        return {"sentimiento": sent, "explicacion": expl}
-                        
-                    except json.JSONDecodeError:
-                        # Si falla el JSON, intentamos el siguiente modelo o retornamos error suave
-                        logger.warning(f"Fallo JSON en {modelo_nombre}")
-                        continue 
+                except json.JSONDecodeError:
+                    logger.warning(f"JSON inválido en {modelo_nombre}: {cleaned_text}")
+                    continue 
 
             except Exception as e:
-                logger.warning(f"Modelo {modelo_nombre} falló: {str(e)}")
-                last_error = e
-                continue # Intentar siguiente modelo
+                logger.error(f"Error en modelo {modelo_nombre}: {e}")
+                continue
         
-        # Si llegamos aquí, todos los modelos fallaron
-        st.error(f"Todos los modelos de IA fallaron. Último error: {last_error}")
-        return {"sentimiento": "Neutro", "explicacion": "Fallo general IA"}
+        return {"sentimiento": "Neutro", "explicacion": "Error de Procesamiento (Reintentar)"}
 
     def analyze_batch(self, df, progress_bar=None):
-        """Procesa el lote de noticias con la lógica robusta."""
         results_sent = []
         results_expl = []
         total = len(df)
         
         if total == 0: return [], []
 
-        # Inicializar estadísticas de uso si no existen
-        if 'model_usage_stats' not in st.session_state:
-            st.session_state['model_usage_stats'] = {}
-
         for index, row in df.iterrows():
-            # Construir texto completo
             titular = str(row.get('titular', ''))
             cuerpo = str(row.get('cuerpo', ''))
             text = f"{titular}. {cuerpo}"
             
-            # Llamada a la IA (que ahora itera modelos internamente)
             analysis = self.analyze_news(text)
             
             results_sent.append(analysis["sentimiento"])
@@ -178,8 +161,7 @@ class AgroSentimentAnalyzer:
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            # Pausa reducida porque tenemos fallback de modelos
-            time.sleep(0.3)
+            time.sleep(0.5) # Pausa para estabilidad
             
         return results_sent, results_expl
 
@@ -208,5 +190,5 @@ class AgroSentimentAnalyzer:
                 time.sleep(0.5)
             return analyzed_data
         except Exception as e:
-            st.error(f"Error Búsqueda Web: {e}")
+            st.error(f"Error Web: {e}")
             return []
