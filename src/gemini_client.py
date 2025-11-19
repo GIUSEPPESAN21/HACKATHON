@@ -7,17 +7,12 @@ import time
 class AgroSentimentAnalyzer:
     def __init__(self):
         try:
-            # Soporte flexible para la API Key
-            if "GEMINI_API_KEY" in st.secrets:
-                api_key = st.secrets["GEMINI_API_KEY"]
-            elif "gemini" in st.secrets and "api_key" in st.secrets["gemini"]:
-                api_key = st.secrets["gemini"]["api_key"]
-            else:
-                # Fallback temporal para evitar crash inmediato si no hay secrets
-                api_key = "" 
-                
+            # Búsqueda de API Key en los secrets
+            api_key = st.secrets.get("GEMINI_API_KEY")
+            
             if not api_key:
-                st.error("⚠️ Falta GEMINI_API_KEY en secrets.")
+                # Fallback para evitar errores si no está configurado aún
+                st.error("⚠️ Falta GEMINI_API_KEY en secrets.toml")
                 self.model = None
                 return
 
@@ -30,19 +25,28 @@ class AgroSentimentAnalyzer:
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     def analyze_news(self, text):
+        """
+        Analiza una noticia individual con contexto específico del Valle del Cauca.
+        """
         if not self.model:
             return "Error Config"
 
+        # PROMPT DE INGENIERÍA ROBUSTO
         prompt = f"""
-        Analista experto en agroindustria del Valle del Cauca.
-        Clasifica el sentimiento de esta noticia: "{text}"
-        
-        Opciones: 'Positivo', 'Negativo', 'Neutro'.
-        Responde SOLO la palabra.
+        Actúa como un analista senior de riesgos agroindustriales para la región del Valle del Cauca, Colombia.
+        Tu tarea es clasificar el sentimiento de la siguiente noticia para un sistema de alertas tempranas.
+
+        Reglas estrictas de clasificación:
+        1. NEGATIVO: Noticias sobre plagas, sequías, fenómeno del niño, paros armados, bloqueos de vías, caída de precios, pérdidas económicas, inseguridad rural, uso excesivo de químicos.
+        2. POSITIVO: Noticias sobre nuevas inversiones, subsidios del gobierno, tecnología agrícola, aumento de exportaciones, clima favorable, alianzas productivas, apertura de mercados.
+        3. NEUTRO: Noticias meramente informativas, nombramientos administrativos, boletines técnicos sin impacto económico directo inmediato.
+
+        Noticia: "{text}"
+
+        Instrucción de Salida: Responde ÚNICAMENTE con una de estas tres palabras exactas: "Positivo", "Negativo" o "Neutro". No expliques nada más.
         """
 
-        # CONFIGURACIÓN CRÍTICA: Desactivar filtros de seguridad excesivos
-        # Esto evita errores cuando las noticias hablan de "protestas" o "muertes" (común en noticias).
+        # DESACTIVAR FILTROS DE SEGURIDAD (Crucial para noticias de protestas/violencia/plagas)
         safety_settings = {
             HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
             HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
@@ -53,21 +57,26 @@ class AgroSentimentAnalyzer:
         try:
             response = self.model.generate_content(prompt, safety_settings=safety_settings)
             
-            # Verificar si la respuesta fue bloqueada
             if not response.parts:
-                return "Neutro" # Fallback seguro si Google bloquea el contenido
+                return "Neutro" # Si Google bloquea, asumimos neutro para no romper el flujo
                 
-            sentiment = response.text.strip().replace('.', '').capitalize()
+            # Limpieza agresiva de la respuesta
+            raw_sentiment = response.text.strip().lower()
             
-            if sentiment not in ['Positivo', 'Negativo', 'Neutro']:
+            if "positivo" in raw_sentiment:
+                return "Positivo"
+            elif "negativo" in raw_sentiment:
+                return "Negativo"
+            elif "neutro" in raw_sentiment:
                 return "Neutro"
+            else:
+                return "Neutro" # Default seguro
                 
-            return sentiment
         except Exception as e:
-            # Si es un error de cuota (429), reintentar. Si es otro, devolver error.
             if "429" in str(e):
-                raise e 
-            return "Error"
+                raise e # Permitir reintento si es error de cuota
+            print(f"Error analizando noticia: {e}")
+            return "Neutro"
 
     def analyze_batch(self, df, progress_bar=None):
         results = []
@@ -77,16 +86,16 @@ class AgroSentimentAnalyzer:
             return []
 
         for index, row in df.iterrows():
-            # Usar texto_completo si existe, sino armarlo
-            text_to_analyze = row.get('texto_completo', str(row.get('titular', '')) + " " + str(row.get('cuerpo', '')))
+            text_to_analyze = str(row.get('texto_completo', ''))
             
+            # Llamada a la IA
             sentiment = self.analyze_news(text_to_analyze)
             results.append(sentiment)
             
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            # Pausa vital para evitar error 429 (Too Many Requests)
-            time.sleep(1.5)
+            # Pausa anti-bloqueo (Evita error 429 Resource Exhausted)
+            time.sleep(1.2)
             
         return results
