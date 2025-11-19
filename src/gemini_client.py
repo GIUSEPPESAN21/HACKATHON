@@ -3,50 +3,75 @@ from google.generativeai.types import HarmCategory, HarmBlockThreshold
 import streamlit as st
 from tenacity import retry, stop_after_attempt, wait_exponential
 import time
+import json
+# Importamos la búsqueda web gratuita
+from duckduckgo_search import DDGS
 
 class AgroSentimentAnalyzer:
     def __init__(self):
         try:
-            # Búsqueda de API Key en los secrets
             api_key = st.secrets.get("GEMINI_API_KEY")
+            if not api_key:
+                # Intentar buscar en la sección [gemini] por compatibilidad
+                api_key = st.secrets.get("gemini", {}).get("api_key")
             
             if not api_key:
-                # Fallback para evitar errores si no está configurado aún
                 st.error("⚠️ Falta GEMINI_API_KEY en secrets.toml")
                 self.model = None
                 return
 
             genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-pro')
+            # Usamos flash por ser más rápido y mejor siguiendo instrucciones JSON
+            self.model = genai.GenerativeModel('gemini-1.5-flash')
             
         except Exception as e:
             st.error(f"🤖 Error Configuración Gemini: {e}")
             self.model = None
 
+    def _get_keywords_prompt(self):
+        """Base de conocimiento inyectada en el prompt"""
+        return """
+        BASE DE CONOCIMIENTO AGRO-VALLE DEL CAUCA:
+        
+        [SENTIMIENTO NEGATIVO 🔴]
+        - Palabras clave: Paro, bloqueo, minga, invasión, sequía, fenómeno del niño, plaga, hongo, pérdidas, quiebra, inseguridad, extorsión, caída de precios, altos costos de insumos.
+        - Contexto: Afectación a la cadena de suministro, reducción de hectáreas sembradas.
+
+        [SENTIMIENTO POSITIVO 🟢]
+        - Palabras clave: Inversión, exportación, subsidio, crédito, tecnología, inauguración, alianza, superávit, recuperación, cosecha récord, apertura de mercados, certificación.
+        - Contexto: Crecimiento económico, apoyo gubernamental efectivo.
+
+        [SENTIMIENTO NEUTRO ⚪]
+        - Palabras clave: Informe, boletín, monitoreo, censo, reunión, mesa de diálogo (sin resultados aún), capacitación, anuncio administrativo.
+        - Contexto: Hechos meramente informativos sin adjetivos de éxito o fracaso.
+        """
+
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     def analyze_news(self, text):
         """
-        Analiza una noticia individual con contexto específico del Valle del Cauca.
+        Analiza una noticia devolviendo Sentimiento y Explicación en JSON.
         """
         if not self.model:
-            return "Error Config"
+            return {"sentimiento": "Neutro", "explicacion": "Error de configuración IA"}
 
-        # PROMPT DE INGENIERÍA ROBUSTO
         prompt = f"""
-        Actúa como un analista senior de riesgos agroindustriales para la región del Valle del Cauca, Colombia.
-        Tu tarea es clasificar el sentimiento de la siguiente noticia para un sistema de alertas tempranas.
+        Eres un analista experto en riesgos agrícolas del Valle del Cauca.
+        
+        {self._get_keywords_prompt()}
 
-        Reglas estrictas de clasificación:
-        1. NEGATIVO: Noticias sobre plagas, sequías, fenómeno del niño, paros armados, bloqueos de vías, caída de precios, pérdidas económicas, inseguridad rural, uso excesivo de químicos.
-        2. POSITIVO: Noticias sobre nuevas inversiones, subsidios del gobierno, tecnología agrícola, aumento de exportaciones, clima favorable, alianzas productivas, apertura de mercados.
-        3. NEUTRO: Noticias meramente informativas, nombramientos administrativos, boletines técnicos sin impacto económico directo inmediato.
+        TAREA:
+        Analiza la siguiente noticia y clasifícala. Debes justificar tu respuesta basándote en las palabras clave identificadas.
 
         Noticia: "{text}"
 
-        Instrucción de Salida: Responde ÚNICAMENTE con una de estas tres palabras exactas: "Positivo", "Negativo" o "Neutro". No expliques nada más.
+        FORMATO DE RESPUESTA (JSON OBLIGATORIO):
+        Responde SOLO con un objeto JSON válido con esta estructura:
+        {{
+            "sentimiento": "Positivo" | "Negativo" | "Neutro",
+            "explicacion": "Breve justificación de máximo 15 palabras explicando qué palabra clave detonó la clasificación."
+        }}
         """
 
-        # DESACTIVAR FILTROS DE SEGURIDAD (Crucial para noticias de protestas/violencia/plagas)
         safety_settings = {
             HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
             HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
@@ -55,47 +80,91 @@ class AgroSentimentAnalyzer:
         }
 
         try:
-            response = self.model.generate_content(prompt, safety_settings=safety_settings)
+            response = self.model.generate_content(prompt, safety_settings=safety_settings, generation_config={"response_mime_type": "application/json"})
             
             if not response.parts:
-                return "Neutro" # Si Google bloquea, asumimos neutro para no romper el flujo
-                
-            # Limpieza agresiva de la respuesta
-            raw_sentiment = response.text.strip().lower()
+                return {"sentimiento": "Neutro", "explicacion": "Bloqueo de seguridad Google"}
             
-            if "positivo" in raw_sentiment:
-                return "Positivo"
-            elif "negativo" in raw_sentiment:
-                return "Negativo"
-            elif "neutro" in raw_sentiment:
-                return "Neutro"
-            else:
-                return "Neutro" # Default seguro
+            # Parsear JSON
+            result = json.loads(response.text)
+            
+            # Normalizar mayúsculas/minúsculas
+            sent = result.get("sentimiento", "Neutro").capitalize()
+            expl = result.get("explicacion", "Sin explicación")
+            
+            if sent not in ["Positivo", "Negativo", "Neutro"]:
+                sent = "Neutro"
+                
+            return {"sentimiento": sent, "explicacion": expl}
                 
         except Exception as e:
-            if "429" in str(e):
-                raise e # Permitir reintento si es error de cuota
             print(f"Error analizando noticia: {e}")
-            return "Neutro"
+            return {"sentimiento": "Neutro", "explicacion": "Error de procesamiento"}
 
     def analyze_batch(self, df, progress_bar=None):
-        results = []
+        """Procesa batch del CSV"""
+        results_sent = []
+        results_expl = []
         total = len(df)
         
-        if total == 0:
-            return []
+        if total == 0: return [], []
 
         for index, row in df.iterrows():
-            text_to_analyze = str(row.get('texto_completo', ''))
+            text = str(row.get('texto_completo', ''))
             
-            # Llamada a la IA
-            sentiment = self.analyze_news(text_to_analyze)
-            results.append(sentiment)
+            analysis = self.analyze_news(text)
+            
+            results_sent.append(analysis["sentimiento"])
+            results_expl.append(analysis["explicacion"])
             
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            # Pausa anti-bloqueo (Evita error 429 Resource Exhausted)
-            time.sleep(1.2)
+            time.sleep(0.5) # Flash es más rápido, podemos reducir la espera
             
-        return results
+        return results_sent, results_expl
+
+    def search_and_analyze_web(self, query="agroindustria Valle del Cauca", max_results=5):
+        """
+        Busca noticias en vivo y las analiza.
+        """
+        try:
+            # Buscar en la web usando DuckDuckGo (gratis)
+            with DDGS() as ddgs:
+                # 'n' significa búsqueda de noticias
+                results = list(ddgs.news(keywords=query, region="co-co", safesearch="off", max_results=max_results))
+            
+            analyzed_data = []
+            
+            if not results:
+                return []
+
+            for item in results:
+                title = item.get('title', '')
+                body = item.get('body', '')
+                date = item.get('date', '')
+                source = item.get('source', '')
+                url = item.get('url', '')
+                
+                full_text = f"{title}. {body}"
+                
+                # Analizar con Gemini
+                analysis = self.analyze_news(full_text)
+                
+                analyzed_data.append({
+                    "titular": title,
+                    "cuerpo": body,
+                    "fecha": date,
+                    "fuente": source,
+                    "url": url,
+                    "sentimiento_ia": analysis["sentimiento"],
+                    "explicacion_ia": analysis["explicacion"],
+                    "id_original": f"web_{int(time.time())}_{results.index(item)}"
+                })
+                time.sleep(0.5)
+                
+            return analyzed_data
+            
+        except Exception as e:
+            st.error(f"Error en búsqueda web: {e}")
+            return []
