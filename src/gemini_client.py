@@ -5,131 +5,171 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 import time
 import json
 import re
+import logging
 from duckduckgo_search import DDGS
+
+# Configuración básica de logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class AgroSentimentAnalyzer:
     def __init__(self):
         try:
-            # Lógica de recuperación de API Key
-            api_key = st.secrets.get("GEMINI_API_KEY")
-            if not api_key:
-                api_key = st.secrets.get("gemini", {}).get("api_key")
+            # Recuperación robusta de la API Key
+            self.api_key = st.secrets.get("GEMINI_API_KEY")
+            if not self.api_key:
+                self.api_key = st.secrets.get("gemini", {}).get("api_key")
             
-            if not api_key:
+            if not self.api_key:
                 st.error("⚠️ Falta GEMINI_API_KEY en secrets.toml")
                 self.model = None
-                return
-
-            genai.configure(api_key=api_key)
-            # Usamos gemini-1.5-flash por velocidad, pero con config de JSON forzado
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            else:
+                # Configuración inicial (se re-configura en cada llamada para robustez)
+                genai.configure(api_key=self.api_key)
+                self.model = True # Flag simple para indicar que estamos listos
             
         except Exception as e:
             st.error(f"🤖 Error Configuración Gemini: {e}")
             self.model = None
 
     def _clean_json_string(self, json_string):
-        """
-        Limpia la respuesta de la IA para evitar errores de formato.
-        Elimina bloques de código markdown ```json ... ```
-        """
+        """Limpia la respuesta de bloques markdown."""
         try:
-            # Eliminar bloques de código markdown
             if "```" in json_string:
                 json_string = re.sub(r"```json\n?|```", "", json_string)
             return json_string.strip()
         except:
             return json_string
 
-    def _get_keywords_prompt(self):
-        return """
-        BASE DE CONOCIMIENTO PRIORITARIA - VALLE DEL CAUCA:
-        
-        🚨 SENTIMIENTO NEGATIVO (Prioridad Alta):
-        - Si menciona: Paro, bloqueo, minga, invasión de tierras, sequía, fenómeno del niño, plagas, pérdidas económicas, inseguridad, extorsión, caída de precios, altos costos, protesta, crisis.
-        - Regla: Ante la duda, si hay riesgo de pérdida de dinero o producción, clasifica como NEGATIVO.
-
-        ✅ SENTIMIENTO POSITIVO:
-        - Si menciona: Nueva inversión, exportación exitosa, subsidios entregados, tecnología implementada, inauguración de obras, alianzas firmadas, superávit, cosecha récord, certificación de calidad.
-        
-        ⚪ SENTIMIENTO NEUTRO (Solo si no hay nada más):
-        - Solo para: Anuncios de reuniones futuras (sin resultados), boletines informativos rutinarios, nombramientos de funcionarios, datos censales sin análisis de impacto.
+    def _get_robust_prompt(self, text):
         """
+        Prompt optimizado con tus criterios específicos para el Valle del Cauca.
+        Adaptado para retornar JSON y mantener compatibilidad con el sistema.
+        """
+        return f"""
+        Eres un analista senior de riesgos agroindustriales especializado en la región del Valle del Cauca, Colombia. 
+        El sistema de alertas tempranas requiere clasificaciones precisas.
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-    def analyze_news(self, text):
-        if not self.model:
-            return {"sentimiento": "Neutro", "explicacion": "Error Configuración"}
+        Criterios de clasificación:
+        NEGATIVO: Plagas, sequías, fenómeno del niño, paros armados, bloqueos de vías, caída de precios, pérdidas económicas, inseguridad rural, uso excesivo de químicos.
+        POSITIVO: Nuevas inversiones, subsidios del gobierno, tecnología agrícola, aumento de exportaciones, clima favorable, alianzas productivas, apertura de mercados.
+        NEUTRO: Noticias meramente informativas, nombramientos administrativos, boletines técnicos sin impacto económico directo inmediato.
 
-        prompt = f"""
-        Eres un analista de riesgos agroindustriales crítico y directo.
-        
-        {self._get_keywords_prompt()}
+        Instrucciones Críticas:
+        1. Evita confundir medidas preventivas con crisis actuales.
+        2. Distingue impacto económico directo vs potencial.
+        3. Clasifica según el impacto predominante.
+        4. Ignora el tono emocional, enfócate en el contenido factual.
 
-        TAREA:
-        Analiza la siguiente noticia. NO seas neutral si detectas el más mínimo riesgo u oportunidad.
-        
-        Noticia: "{text}"
+        Noticia a analizar: "{text}"
 
-        SALIDA OBLIGATORIA (JSON):
+        SALIDA OBLIGATORIA (FORMATO JSON):
+        Para compatibilidad con el sistema, debes responder estrictamente con este JSON:
         {{
             "sentimiento": "Positivo" | "Negativo" | "Neutro",
-            "explicacion": "Frase corta (max 10 palabras) indicando la palabra clave detectada."
+            "explicacion": "Breve justificación (max 15 palabras) basada en tus criterios."
         }}
         """
 
-        safety_settings = {
-            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+    def analyze_news(self, text):
+        """
+        FUNCIÓN CORREGIDA Y OPTIMIZADA (Basada en tu solicitud v2.0)
+        - Itera sobre múltiples modelos (2.0 experimental -> 1.5 stable).
+        - Manejo de errores robusto.
+        """
+        if not self.api_key:
+            return {"sentimiento": "Neutro", "explicacion": "Error Configuración"}
+
+        # Configuración de generación optimizada para análisis
+        generation_config = {
+            "temperature": 0.3, # Baja temperatura para mayor precisión
+            "top_p": 0.95,
+            "top_k": 40,
+            "max_output_tokens": 1024,
+            "response_mime_type": "application/json" # Forzamos JSON nativamente
         }
 
-        try:
-            # Forzamos MIME type JSON para que el modelo sea obediente
-            response = self.model.generate_content(
-                prompt, 
-                safety_settings=safety_settings,
-                generation_config={"response_mime_type": "application/json"}
-            )
-            
-            if not response.parts:
-                return {"sentimiento": "Neutro", "explicacion": "Google Security Block"}
-            
-            # Limpieza y Parseo Robusto
-            cleaned_text = self._clean_json_string(response.text)
-            result = json.loads(cleaned_text)
-            
-            sent = result.get("sentimiento", "Neutro").capitalize()
-            expl = result.get("explicacion", "Sin detalle")
-            
-            # Normalización final
-            if sent not in ["Positivo", "Negativo", "Neutro"]:
-                sent = "Neutro"
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        }
+
+        # Lista de modelos priorizada (Tu lista solicitada)
+        model_candidates = [
+            "gemini-2.0-flash-exp",       # Prioridad 1: Experimental rápido
+            "gemini-1.5-flash",           # Prioridad 2: Estable rápido
+            "gemini-1.5-pro",             # Prioridad 3: Estable potente
+            "gemini-1.5-flash-8b"         # Prioridad 4: Ultraligero
+        ]
+
+        last_error = None
+
+        for modelo_nombre in model_candidates:
+            try:
+                # Instanciar modelo específico
+                model = genai.GenerativeModel(
+                    model_name=modelo_nombre,
+                    generation_config=generation_config,
+                    safety_settings=safety_settings
+                )
+
+                # Intentar generar contenido
+                response = model.generate_content(self._get_robust_prompt(text))
                 
-            return {"sentimiento": sent, "explicacion": expl}
-                
-        except json.JSONDecodeError:
-            # Si falla el JSON, intentamos rescatar algo manualmente o devolvemos error limpio
-            print(f"Error JSON crudo: {response.text}") 
-            return {"sentimiento": "Neutro", "explicacion": "Error formato IA"}
-        except Exception as e:
-            print(f"Error general: {e}")
-            return {"sentimiento": "Neutro", "explicacion": "Error conexión"}
+                if response.parts:
+                    cleaned_text = self._clean_json_string(response.text)
+                    
+                    # Guardamos qué modelo se usó (útil para depuración)
+                    if 'model_usage_stats' not in st.session_state:
+                        st.session_state['model_usage_stats'] = {}
+                    st.session_state['model_usage_stats'][modelo_nombre] = st.session_state['model_usage_stats'].get(modelo_nombre, 0) + 1
+                    
+                    try:
+                        result = json.loads(cleaned_text)
+                        sent = result.get("sentimiento", "Neutro").capitalize()
+                        expl = result.get("explicacion", "Análisis automático")
+                        
+                        # Validación final
+                        if sent not in ["Positivo", "Negativo", "Neutro"]:
+                            sent = "Neutro"
+                            
+                        return {"sentimiento": sent, "explicacion": expl}
+                        
+                    except json.JSONDecodeError:
+                        # Si falla el JSON, intentamos el siguiente modelo o retornamos error suave
+                        logger.warning(f"Fallo JSON en {modelo_nombre}")
+                        continue 
+
+            except Exception as e:
+                logger.warning(f"Modelo {modelo_nombre} falló: {str(e)}")
+                last_error = e
+                continue # Intentar siguiente modelo
+        
+        # Si llegamos aquí, todos los modelos fallaron
+        st.error(f"Todos los modelos de IA fallaron. Último error: {last_error}")
+        return {"sentimiento": "Neutro", "explicacion": "Fallo general IA"}
 
     def analyze_batch(self, df, progress_bar=None):
+        """Procesa el lote de noticias con la lógica robusta."""
         results_sent = []
         results_expl = []
         total = len(df)
         
         if total == 0: return [], []
 
+        # Inicializar estadísticas de uso si no existen
+        if 'model_usage_stats' not in st.session_state:
+            st.session_state['model_usage_stats'] = {}
+
         for index, row in df.iterrows():
-            # Construir texto robusto
+            # Construir texto completo
             titular = str(row.get('titular', ''))
             cuerpo = str(row.get('cuerpo', ''))
             text = f"{titular}. {cuerpo}"
             
+            # Llamada a la IA (que ahora itera modelos internamente)
             analysis = self.analyze_news(text)
             
             results_sent.append(analysis["sentimiento"])
@@ -138,8 +178,8 @@ class AgroSentimentAnalyzer:
             if progress_bar:
                 progress_bar.progress((index + 1) / total)
             
-            # Pequeña pausa para estabilidad
-            time.sleep(0.5)
+            # Pausa reducida porque tenemos fallback de modelos
+            time.sleep(0.3)
             
         return results_sent, results_expl
 
@@ -168,6 +208,5 @@ class AgroSentimentAnalyzer:
                 time.sleep(0.5)
             return analyzed_data
         except Exception as e:
-            st.error(f"Error Web: {e}")
+            st.error(f"Error Búsqueda Web: {e}")
             return []
-        
