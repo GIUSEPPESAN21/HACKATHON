@@ -6,7 +6,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from streamlit_folium import folium_static
+from streamlit_folium import st_folium
 import altair as alt
 
 # Imports de módulos propios
@@ -265,23 +265,23 @@ def main():
                 with st.expander("👁️ Vista Previa de Datos", expanded=False):
                     st.dataframe(
                         df[['titular', 'fecha']].head(10),
-                        use_container_width=True,
+                        width='stretch',
                         hide_index=True
                     )
                 
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
                 with col_btn1:
-                    analyze_btn = st.button("🧠 Analizar con IA", type="primary", use_container_width=True)
+                    analyze_btn = st.button("🧠 Analizar con IA", type="primary", width='stretch')
                 
                 with col_btn2:
                     if use_smart_batch:
-                        batch_btn = st.button("⚡ Análisis Batch Rápido", use_container_width=True)
+                        batch_btn = st.button("⚡ Análisis Batch Rápido", width='stretch')
                     else:
                         batch_btn = False
                 
                 with col_btn3:
-                    cache_info = st.button("📊 Info de Caché", use_container_width=True)
+                    cache_info = st.button("📊 Info de Caché", width='stretch')
                 
                 if cache_info:
                     st.json(cache_stats)
@@ -311,17 +311,17 @@ def main():
                     else:
                         st.error("⚠️ API Key de Gemini no configurada")
                 
-                # Análisis batch inteligente
+                # Análisis batch inteligente - CORREGIDO: método no existe, usar batch normal
                 if batch_btn:
-                    with st.spinner('⚡ Análisis batch ultra-rápido...'):
-                        texts_list = [f"{row['titular']}. {row['cuerpo']}" for _, row in df.iterrows()]
-                        results = analyzer.analyze_batch_smart(texts_list, max_per_batch=5)
+                    with st.spinner('⚡ Análisis batch rápido...'):
+                        progress = st.progress(0)
+                        sents, expls = analyzer.analyze_batch(df, progress, use_smart_batch=True)
                         
-                        df['sentimiento_ia'] = [r['sentimiento'] for r in results]
-                        df['explicacion_ia'] = [r['explicacion'] for r in results]
+                        df['sentimiento_ia'] = sents
+                        df['explicacion_ia'] = expls
                         
                         st.session_state['last_analysis'] = df
-                        st.success(f"⚡ Análisis batch completado en tiempo récord!")
+                        st.success(f"⚡ Análisis batch completado!")
         
         # Mostrar resultados si existen
         if 'last_analysis' in st.session_state:
@@ -415,11 +415,10 @@ def main():
     with tabs[2]:
         st.header("🗺️ Mapa Geográfico de Noticias")
         
-        data_source = None
-        if 'last_analysis' in st.session_state:
-            data_source = st.session_state['last_analysis']
-        elif 'web_analysis' in st.session_state:
-            data_source = st.session_state['web_analysis']
+        # CORREGIDO: DataFrame no puede usar comparación directa
+        data_source = st.session_state.get('last_analysis')
+        if data_source is None:
+            data_source = st.session_state.get('web_analysis')
         
         if data_source is not None and len(data_source) > 0:
             col_map_type, col_map_action = st.columns([3, 1])
@@ -442,7 +441,9 @@ def main():
                         st.session_state['current_map'] = news_map
             
             if 'current_map' in st.session_state:
-                folium_static(st.session_state['current_map'], width=1200, height=600)
+                # CORREGIDO: folium_static deprecado, usar st_folium
+                from streamlit_folium import st_folium
+                st_folium(st.session_state['current_map'], width=1200, height=600)
         else:
             st.info("⬅️ Realiza primero un análisis para visualizar el mapa")
     
@@ -485,9 +486,9 @@ def main():
                 
                 col_send, col_reset = st.columns([4, 1])
                 with col_send:
-                    send_btn = st.button("📤 Enviar", type="primary", use_container_width=True)
+                    send_btn = st.button("📤 Enviar", type="primary", width='stretch')
                 with col_reset:
-                    if st.button("🔄 Reiniciar", use_container_width=True):
+                    if st.button("🔄 Reiniciar", width='stretch'):
                         chatbot.reset_conversation()
                         st.success("Conversación reiniciada")
                 
@@ -522,7 +523,10 @@ def main():
     with tabs[4]:
         st.header("📈 Análisis de Tendencias y Predicciones")
         
-        data_source = st.session_state.get('last_analysis') or st.session_state.get('web_analysis')
+        # CORREGIDO: DataFrame no puede usar 'or' directamente
+        data_source = st.session_state.get('last_analysis')
+        if data_source is None:
+            data_source = st.session_state.get('web_analysis')
         
         if data_source is not None:
             trend_analyzer.load_data(data_source)
@@ -666,7 +670,7 @@ def main():
                     title="Distribución de Sentimientos"
                 )
                 fig_pie.update_layout(height=400)
-                st.plotly_chart(fig_pie, use_container_width=True)
+                st.plotly_chart(fig_pie, width='stretch')
             
             with col_bar:
                 sentiment_counts = data_source['sentimiento_ia'].value_counts()
@@ -683,7 +687,7 @@ def main():
                     yaxis_title="Cantidad",
                     height=400
                 )
-                st.plotly_chart(fig_bar, use_container_width=True)
+                st.plotly_chart(fig_bar, width='stretch')
         else:
             st.info("⬅️ Primero realiza un análisis")
     
@@ -702,7 +706,7 @@ def main():
                 st.markdown("### 📕 Reporte PDF")
                 st.write("Genera un reporte profesional en PDF con gráficos y análisis")
                 
-                if st.button("📄 Generar PDF", type="primary", use_container_width=True):
+                if st.button("📄 Generar PDF", type="primary", width='stretch'):
                     with st.spinner("Generando PDF..."):
                         try:
                             pdf_buffer = exporter.export_to_pdf(data_source, include_stats=True)
@@ -711,7 +715,7 @@ def main():
                                 data=pdf_buffer,
                                 file_name=f"reporte_sava_{datetime.now().strftime('%Y%m%d')}.pdf",
                                 mime="application/pdf",
-                                use_container_width=True
+                                width='stretch'
                             )
                             st.success("✅ PDF generado!")
                         except Exception as e:
@@ -721,7 +725,7 @@ def main():
                 st.markdown("### 📗 Reporte Excel")
                 st.write("Exporta a Excel con múltiples hojas, gráficos y formato profesional")
                 
-                if st.button("📊 Generar Excel", type="primary", use_container_width=True):
+                if st.button("📊 Generar Excel", type="primary", width='stretch'):
                     with st.spinner("Generando Excel..."):
                         try:
                             excel_buffer = exporter.export_to_excel(data_source, include_charts=True)
@@ -730,7 +734,7 @@ def main():
                                 data=excel_buffer,
                                 file_name=f"reporte_sava_{datetime.now().strftime('%Y%m%d')}.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                use_container_width=True
+                                width='stretch'
                             )
                             st.success("✅ Excel generado!")
                         except Exception as e:
@@ -773,7 +777,7 @@ def main():
                     
                     df_filtered = df_hist[df_hist['sentimiento'].isin(filter_sent)]
                     
-                    st.dataframe(df_filtered, use_container_width=True, height=400)
+                    st.dataframe(df_filtered, width='stretch', height=400)
                 else:
                     st.warning("No hay historial disponible")
 
