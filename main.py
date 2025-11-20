@@ -636,15 +636,10 @@ st.markdown("""
         padding: 0.6rem 0.8rem !important;
     }
     
-    /* Reducir espaciado en dataframes - Asegurar visibilidad */
+    /* Reducir espaciado en dataframes */
     [data-testid="stDataFrame"] {
         margin-top: 0.3rem !important;
         margin-bottom: 0.3rem !important;
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        width: 100% !important;
-        height: auto !important;
     }
     
     /* Reducir espaciado en spinners */
@@ -858,23 +853,16 @@ st.markdown("""
 # Funciones de autenticación
 def show_login_page():
     """Muestra la página de login/registro"""
-    # Centrar el logo y contenido
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Logo SAVA - CENTRADO
+        # Logo SAVA - REDUCIDO
         try:
-            st.image(LOGO_URL, width=150, use_container_width=False)
+            st.image(LOGO_URL, width=120, use_container_width=False)
         except:
-            try:
-                st.image(LOGO_COLIBRI_URL, width=150, use_container_width=False)
-            except:
-                st.markdown("## 🌱 SAVA")
+            st.image(LOGO_COLIBRI_URL, width=120, use_container_width=False)
         
-        # Centrar el texto
-        st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
         st.markdown("### 🌱 SAVA Agro-Insight PRO")
         st.markdown("**Sistema Inteligente de Análisis de Riesgos Agroindustriales**")
-        st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("---")
         
         # Tabs de Login/Registro
@@ -1115,25 +1103,14 @@ def main():
             else:
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
-                # Vista previa mejorada - Mostrar automáticamente con opción de ocultar
-                show_preview = st.checkbox("👁️ Mostrar Vista Previa de Datos", value=True, key="preview_checkbox")
+                # Vista previa mejorada - Usando checkbox para mostrar/ocultar sin expander
+                show_preview = st.checkbox("👁️ Mostrar Vista Previa de Datos", value=False)
                 if show_preview:
-                    # Asegurar que el dataframe se muestre correctamente
-                    try:
-                        if 'titular' in df.columns and 'fecha' in df.columns:
-                            preview_df = df[['titular', 'fecha']].head(10)
-                        else:
-                            # Si no tiene esas columnas, mostrar las primeras columnas disponibles
-                            preview_df = df.head(10)
-                        
-                        st.dataframe(
-                            preview_df,
-                            hide_index=True,
-                            use_container_width=True
-                        )
-                    except Exception as e:
-                        st.warning(f"No se pudo mostrar la vista previa: {str(e)}")
-                        st.dataframe(df.head(10), use_container_width=True)
+                    st.dataframe(
+                        df[['titular', 'fecha']].head(10),
+                        width='stretch',
+                        hide_index=True
+                    )
                 
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
