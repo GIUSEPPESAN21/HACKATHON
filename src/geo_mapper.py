@@ -219,9 +219,11 @@ class NewsGeoMapper:
         )
         
         heat_data = []
+        negativas_count = 0
         
         for index, row in df.iterrows():
             if row.get('sentimiento_ia') == 'Negativo':
+                negativas_count += 1
                 text_full = f"{row.get('titular', '')} {row.get('cuerpo', '')}"
                 locations = self.extract_locations_from_text(text_full)
                 
@@ -230,10 +232,34 @@ class NewsGeoMapper:
                     if coords:
                         # Peso mayor para noticias negativas
                         heat_data.append([coords[0], coords[1], 1.0])
-                    time.sleep(0.1)
+                    time.sleep(0.05)  # Reducido para ser más rápido
         
         if heat_data:
-            plugins.HeatMap(heat_data, radius=25, blur=35, max_zoom=13).add_to(m)
+            # MEJORADO: Configuración más visible del heatmap
+            plugins.HeatMap(
+                heat_data, 
+                radius=30,  # Aumentado para mejor visibilidad
+                blur=40,    # Aumentado para mejor difusión
+                max_zoom=13,
+                min_opacity=0.3,  # Más visible
+                gradient={0.2: 'blue', 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red'}  # Gradiente de colores
+            ).add_to(m)
+            
+            # Agregar marcador informativo
+            folium.Marker(
+                location=(3.8008, -76.6413),
+                popup=f"Mapa de Calor de Riesgos<br>Noticias Negativas: {negativas_count}<br>Puntos geolocalizados: {len(heat_data)}",
+                icon=folium.Icon(color='red', icon='info-sign', prefix='glyphicon')
+            ).add_to(m)
+        else:
+            # Si no hay datos, agregar marcador informativo
+            folium.Marker(
+                location=(3.8008, -76.6413),
+                popup="No hay noticias negativas geolocalizadas para mostrar en el mapa de calor",
+                icon=folium.Icon(color='gray', icon='info-sign', prefix='glyphicon')
+            ).add_to(m)
+        
+        logger.info(f"🔥 Mapa de calor: {len(heat_data)} puntos de {negativas_count} noticias negativas")
         
         return m
 
