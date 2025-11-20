@@ -1,19 +1,51 @@
-Entornos virtuales (¡Culpable principal!)
-
+# Entornos virtuales
 venv/
 env/
 .env
 .venv/
 
-Archivos temporales de Python
-
-pycache/
+# Python
+__pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+.Python
 
-Streamlit
-
+# Streamlit
 .streamlit/secrets.toml
 
-Datos grandes (si aplica)
-
+# Datos
 *.csv
+*.xlsx
+*.pdf
+
+# Caché SAVA v2.0
+cache/
+*.db
+*.db-journal
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build
+dist/
+build/
+*.egg-info/
+
