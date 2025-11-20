@@ -715,7 +715,7 @@ def main():
                 # Vista previa mejorada
                 with st.expander("                                 👁️ Vista Previa de Datos", expanded=False):
                     st.dataframe(
-                        df[['titular', 'fecha']].head(10),
+                        df[['titular', 'fecha']].head(15),
                         width='stretch',
                         hide_index=True
                     )
