@@ -15,6 +15,7 @@ class AgroSentimentAnalyzer:
         # INICIALIZACIÓN SEGURA: Definimos atributos por defecto para evitar AttributeError
         self.api_key = None
         self.model = None # Se mantiene por compatibilidad, aunque usamos rotación dinámica
+        self.available_models_cache = None  # Cache de modelos disponibles
         
         try:
             self.api_key = st.secrets.get("GEMINI_API_KEY")
@@ -28,8 +29,38 @@ class AgroSentimentAnalyzer:
             genai.configure(api_key=self.api_key)
             self.model = True # Bandera para indicar que estamos listos
             
+            # Intentar detectar modelos disponibles al inicio (opcional, no crítico)
+            try:
+                self.available_models_cache = self._list_available_models()
+            except Exception:
+                pass  # No crítico si falla, se intentará después
+            
         except Exception as e:
             st.error(f"🤖 Error Crítico Configuración Gemini: {e}")
+
+    def _list_available_models(self):
+        """Lista los modelos disponibles en la API de Gemini para debugging."""
+        try:
+            models = genai.list_models()
+            available_models = []
+            model_names_short = []  # Nombres cortos sin prefijo "models/"
+            for model in models:
+                if 'generateContent' in model.supported_generation_methods:
+                    full_name = model.name
+                    available_models.append(full_name)
+                    # Extraer nombre corto (ej: "models/gemini-1.5-flash-latest" -> "gemini-1.5-flash-latest")
+                    if '/' in full_name:
+                        short_name = full_name.split('/')[-1]
+                        model_names_short.append(short_name)
+                    else:
+                        model_names_short.append(full_name)
+            
+            if model_names_short:
+                logger.info(f"📋 Modelos disponibles ({len(model_names_short)}): {', '.join(model_names_short[:10])}")
+            return model_names_short  # Retornar nombres cortos para facilitar uso
+        except Exception as e:
+            logger.error(f"Error al listar modelos: {e}")
+            return []
 
     def _parse_text_response(self, text_response):
         """Analiza la respuesta de texto plano para extraer clasificación y argumento."""
@@ -152,11 +183,14 @@ ARGUMENTO: [Explicación clara de 1-2 frases en español sobre por qué clasific
 IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin texto adicional."""
 
         # Lista de modelos ordenada por EFICIENCIA DE CUOTA
-        # NOTA: Los nombres de modelos deben ser exactos según la API de Gemini
-        # Usar nombres sin sufijos adicionales y verificar disponibilidad
+        # NOTA: Actualizado a modelos disponibles en 2025
+        # Los modelos gemini-1.5-flash y gemini-1.5-pro fueron descontinuados (septiembre 2025)
+        # Usar nombres exactos según la API de Gemini
         candidates = [
-            "gemini-1.5-flash",        # Modelo flash (más rápido, mejor cuota)
-            "gemini-1.5-pro",          # Modelo pro (más potente)
+            "gemini-1.5-flash-latest", # Versión latest de 1.5 flash (más común)
+            "gemini-1.5-pro-latest",   # Versión latest de 1.5 pro
+            "gemini-2.0-flash-exp",    # Modelo flash experimental 2.0
+            "gemini-2.0-flash",        # Modelo flash estable 2.0
             "gemini-pro",               # Modelo estándar (compatibilidad legacy)
         ]
 
@@ -206,8 +240,56 @@ IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin 
                     logger.error(f"❌ Error en {model_name}: {error_msg[:200]}")
                     continue
 
-        # Si todos los modelos fallaron, retornar error explícito en lugar de "Neutro" por defecto
-        logger.error("Todos los modelos de Gemini fallaron. No se pudo analizar la noticia.")
+        # Si todos los modelos fallaron, intentar usar modelos disponibles detectados automáticamente
+        logger.warning("⚠️ Todos los modelos candidatos fallaron. Intentando detectar modelos disponibles...")
+        
+        # Usar cache si está disponible, sino intentar listar ahora
+        available_models = self.available_models_cache if self.available_models_cache else self._list_available_models()
+        
+        # Si encontramos modelos disponibles, intentar usarlos
+        if available_models:
+            logger.info(f"🔄 Intentando con modelos detectados automáticamente: {', '.join(available_models[:3])}")
+            for model_name in available_models[:3]:  # Intentar solo los primeros 3 para no demorar mucho
+                try:
+                    model = genai.GenerativeModel(
+                        model_name,
+                        generation_config={
+                            "temperature": 0.1, 
+                            "max_output_tokens": 300,
+                            "top_p": 0.8,
+                            "top_k": 40
+                        },
+                        safety_settings={
+                            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                        }
+                    )
+                    
+                    response = model.generate_content(prompt)
+                    
+                    if response.parts and response.text:
+                        resultado = self._parse_text_response(response.text)
+                        logger.info(f"✅ Modelo {model_name} funcionó correctamente (detectado automáticamente)")
+                        # Actualizar cache con este modelo que funcionó
+                        if model_name not in (self.available_models_cache or []):
+                            if self.available_models_cache is None:
+                                self.available_models_cache = []
+                            self.available_models_cache.insert(0, model_name)  # Poner al inicio para priorizar
+                        return resultado
+                except Exception as e:
+                    logger.debug(f"Modelo {model_name} falló: {str(e)[:100]}")
+                    continue
+        
+        # Si llegamos aquí, todos los intentos fallaron
+        logger.error("❌ Todos los modelos de Gemini fallaron. No se pudo analizar la noticia.")
+        if available_models:
+            logger.warning(f"💡 Modelos disponibles detectados: {', '.join(available_models[:5])}")
+            logger.warning(f"💡 Los modelos candidatos intentados fueron: {', '.join(candidates)}")
+        else:
+            logger.error("No se pudieron listar modelos disponibles. Verifica tu API key y conexión.")
+        
         return {"sentimiento": "Neutro", "explicacion": "Error: Sistema saturado o sin acceso a modelos de IA. Intenta más tarde."}
 
     def analyze_batch(self, df, progress_bar=None):
