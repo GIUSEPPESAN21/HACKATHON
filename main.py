@@ -38,7 +38,7 @@ st.set_page_config(
 LOGO_URL = "https://raw.githubusercontent.com/GIUSEPPESAN21/LOGO-SAVA/main/LOGO.jpg"
 LOGO_COLIBRI_URL = "https://raw.githubusercontent.com/GIUSEPPESAN21/LOGO-SAVA/main/LOGO%20COLIBRI.png"
 
-# CSS PROFESIONAL MEJORADO CON MEJOR TIPOGRAFÍA
+# CSS PROFESIONAL MEJORADO - CORREGIDO
 st.markdown("""
     <style>
     /* Importar fuentes de Google */
@@ -48,6 +48,19 @@ st.markdown("""
     .main { 
         background: linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 50%, #c3cfe2 100%);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding-top: 2rem !important;
+    }
+    
+    /* FIX: Evitar superposición de elementos */
+    .element-container {
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* FIX: Separación adecuada entre elementos */
+    .stMarkdown {
+        margin-bottom: 1rem !important;
+        clear: both !important;
     }
     
     /* Tipografía mejorada */
@@ -56,6 +69,9 @@ st.markdown("""
         font-weight: 600 !important;
         letter-spacing: -0.5px !important;
         color: #1a1a2e !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1rem !important;
+        clear: both !important;
     }
     
     /* Texto general */
@@ -78,6 +94,7 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
         transition: all 0.3s ease !important;
         font-family: 'Inter', sans-serif !important;
+        margin: 0.5rem 0 !important;
     }
     .stButton>button:hover {
         transform: translateY(-2px) scale(1.02) !important;
@@ -100,7 +117,11 @@ st.markdown("""
         letter-spacing: -0.5px !important;
     }
     
-    /* Inputs mejorados */
+    /* FIX: Inputs mejorados con mejor espaciado */
+    .stTextInput, .stTextArea {
+        margin-bottom: 1rem !important;
+    }
+    
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         font-family: 'Inter', sans-serif !important;
         font-size: 15px !important;
@@ -108,10 +129,21 @@ st.markdown("""
         border: 2px solid #e0e0e0 !important;
         padding: 10px 15px !important;
         transition: all 0.3s ease !important;
+        background: white !important;
+        width: 100% !important;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
         border-color: #667eea !important;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        outline: none !important;
+    }
+    
+    /* FIX: Labels con mejor visibilidad */
+    label {
+        font-weight: 500 !important;
+        margin-bottom: 0.5rem !important;
+        display: block !important;
+        color: #1a1a2e !important;
     }
     
     /* Tarjetas con sombra */
@@ -120,12 +152,23 @@ st.markdown("""
         border-radius: 15px;
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+        margin-bottom: 1rem !important;
+    }
+    
+    /* FIX: Dataframe y tablas con mejor espaciado */
+    .stDataFrame {
+        margin: 1.5rem 0 !important;
+        padding: 1rem !important;
+        background: white !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
     }
     
     /* Sidebar premium mejorado */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
         color: white !important;
+        padding-top: 2rem !important;
     }
     [data-testid="stSidebar"] * {
         color: white !important;
@@ -158,9 +201,9 @@ st.markdown("""
     /* Ocultar keyboard_double_arrow_right */
     .keyboard_double_arrow_right,
     [data-testid*="arrow"],
-svg[data-testid*="arrow"] {
-    display: none !important;
-}
+    svg[data-testid*="arrow"] {
+        display: none !important;
+    }
     /* Ocultar controles de expansión del sidebar */
     section[data-testid="stSidebar"] > div:first-child button {
         display: none !important;
@@ -236,6 +279,10 @@ svg[data-testid*="arrow"] {
         color: white !important;
         border-radius: 8px !important;
     }
+    [data-testid="stSidebar"] .stTextInput>div>div>input::placeholder,
+    [data-testid="stSidebar"] .stTextArea>div>div>textarea::placeholder {
+        color: rgba(255, 255, 255, 0.5) !important;
+    }
     [data-testid="stSidebar"] .stTextInput>div>div>input:focus,
     [data-testid="stSidebar"] .stTextArea>div>div>textarea:focus {
         border-color: rgba(255, 255, 255, 0.5) !important;
@@ -248,7 +295,11 @@ svg[data-testid*="arrow"] {
         font-weight: 500 !important;
     }
     
-    /* Tabs mejorados */
+    /* FIX: Tabs mejorados con mejor espaciado */
+    .stTabs {
+        margin: 1.5rem 0 !important;
+    }
+    
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: white;
@@ -316,20 +367,24 @@ svg[data-testid*="arrow"] {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
     }
     
-    /* Tarjetas de noticias mejoradas - Más anchas y claras */
+    /* FIX: Tarjetas de noticias mejoradas - Sin superposición */
     .news-card {
         background: white !important;
         border-radius: 12px !important;
         padding: 20px !important;
-        margin-bottom: 15px !important;
+        margin-bottom: 20px !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
         border-left: 5px solid !important;
         transition: all 0.3s ease !important;
         width: 100% !important;
+        position: relative !important;
+        z-index: 1 !important;
+        clear: both !important;
     }
     .news-card:hover {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
         transform: translateY(-2px) !important;
+        z-index: 2 !important;
     }
     .news-card-positive {
         border-left-color: #27ae60 !important;
@@ -394,28 +449,26 @@ svg[data-testid*="arrow"] {
         background: rgba(102, 126, 234, 0.05) !important;
         border-radius: 8px !important;
         border-left: 3px solid #667eea !important;
+        margin-top: 10px !important;
     }
     
-    /* Ocultar iconos de expander */
+    /* FIX: Expander con mejor espaciado */
     .streamlit-expanderHeader {
-        display: none !important;
+        background: white !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        margin: 1rem 0 !important;
     }
     
-    /* Mejorar visualización de noticias - Ancho completo */
-    .element-container {
-        max-width: 100% !important;
-    }
-    
-    /* Contenedor principal más ancho */
+    /* FIX: Contenedor principal con espaciado correcto */
     .main .block-container {
         max-width: 1200px !important;
-        padding-left: 3rem !important;
-        padding-right: 3rem !important;
+        padding: 2rem 3rem !important;
     }
     
-    /* Tarjetas de noticias con mejor espaciado */
-    .news-card {
-        margin-bottom: 20px !important;
+    /* FIX: Asegurar separación entre secciones */
+    .stMarkdown + .stMarkdown {
+        margin-top: 1rem !important;
     }
     
     /* Asegurar que el texto del sidebar sea completamente visible */
@@ -451,8 +504,26 @@ svg[data-testid*="arrow"] {
         visibility: hidden !important;
         opacity: 0 !important;
     }
+    
+    /* FIX ESPECÍFICO: Evitar superposición de "Vista Previa de Datos" */
+    div[data-testid="stExpander"] {
+        margin: 1.5rem 0 !important;
+        position: relative !important;
+        z-index: auto !important;
+    }
+    
+    /* FIX: Selectbox y otros widgets */
+    .stSelectbox, .stMultiselect, .stNumberInput {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* FIX: File uploader */
+    .stFileUploader {
+        margin: 1rem 0 !important;
+    }
+    
     </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # Funciones de autenticación
 def show_login_page():
