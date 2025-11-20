@@ -20,6 +20,10 @@ from src.chatbot_rag import AgriNewsBot
 from src.trend_analyzer import TrendAnalyzer
 from src.alert_system import AlertSystem
 from src.export_manager import ReportExporter
+from src.auth_manager import (
+    register_user, authenticate_user, get_current_user,
+    is_authenticated, logout
+)
 
 # Configuración de página MEJORADA
 st.set_page_config(
@@ -29,33 +33,84 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS PROFESIONAL MEJORADO
+# URLs de logos SAVA
+LOGO_URL = "https://raw.githubusercontent.com/GIUSEPPESAN21/LOGO-SAVA/main/LOGO.jpg"
+LOGO_COLIBRI_URL = "https://raw.githubusercontent.com/GIUSEPPESAN21/LOGO-SAVA/main/LOGO%20COLIBRI.png"
+
+# CSS PROFESIONAL MEJORADO CON MEJOR TIPOGRAFÍA
 st.markdown("""
     <style>
-    /* Tema general */
-    .main { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
+    /* Importar fuentes de Google */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
     
-    /* Botones premium */
+    /* Tema general mejorado */
+    .main { 
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 50%, #c3cfe2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    /* Tipografía mejorada */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Poppins', sans-serif !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.5px !important;
+        color: #1a1a2e !important;
+    }
+    
+    /* Texto general */
+    body, .stMarkdown, p, div, span {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 15px !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Botones premium mejorados */
     .stButton>button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 10px 25px;
-        font-weight: bold;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 12px 28px !important;
+        font-weight: 600 !important;
+        font-size: 15px !important;
+        letter-spacing: 0.3px !important;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+        transition: all 0.3s ease !important;
+        font-family: 'Inter', sans-serif !important;
     }
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        transform: translateY(-2px) scale(1.02) !important;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+    }
+    
+    /* Botones secundarios */
+    .stButton>button[kind="secondary"] {
+        background: white !important;
+        color: #667eea !important;
+        border: 2px solid #667eea !important;
     }
     
     /* Métricas mejoradas */
     div[data-testid="stMetricValue"] {
-        font-size: 28px;
-        font-weight: bold;
-        color: #2c3e50;
+        font-size: 32px !important;
+        font-weight: 700 !important;
+        font-family: 'Poppins', sans-serif !important;
+        color: #1a1a2e !important;
+        letter-spacing: -0.5px !important;
+    }
+    
+    /* Inputs mejorados */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 15px !important;
+        border-radius: 10px !important;
+        border: 2px solid #e0e0e0 !important;
+        padding: 10px 15px !important;
+        transition: all 0.3s ease !important;
+    }
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
     }
     
     /* Tarjetas con sombra */
@@ -66,12 +121,17 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0,0,0,0.07);
     }
     
-    /* Sidebar premium */
+    /* Sidebar premium mejorado */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
-        color: white;
+        background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
+        color: white !important;
     }
     [data-testid="stSidebar"] * {
+        color: white !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        font-family: 'Poppins', sans-serif !important;
         color: white !important;
     }
     
@@ -145,12 +205,143 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Sidebar MEJORADO
-with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/1094/1094349.png", width=80)
-    st.title("🌱 SAVA Software")
-    st.markdown("### *Agro-Insight Pro v2.0*")
+# Funciones de autenticación
+def show_login_page():
+    """Muestra la página de login/registro"""
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        # Logo SAVA
+        try:
+            st.image(LOGO_URL, width=200, use_container_width=True)
+        except:
+            st.image(LOGO_COLIBRI_URL, width=200, use_container_width=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("### 🌱 SAVA Agro-Insight PRO")
+        st.markdown("**Sistema Inteligente de Análisis de Riesgos Agroindustriales**")
+        st.markdown("---")
+        
+        # Tabs de Login/Registro
+        tab1, tab2 = st.tabs(["🔐 Iniciar Sesión", "📝 Registrarse"])
+        
+        # TAB 1: LOGIN
+        with tab1:
+            st.markdown("### Inicia Sesión")
+            with st.form("login_form"):
+                username = st.text_input("👤 Usuario o Email", placeholder="Ingresa tu usuario o email")
+                password = st.text_input("🔒 Contraseña", type="password", placeholder="Ingresa tu contraseña")
+                
+                login_button = st.form_submit_button("🚀 Iniciar Sesión", use_container_width=True)
+                
+                if login_button:
+                    if username and password:
+                        success, user_data, message = authenticate_user(username, password)
+                        if success:
+                            st.session_state['user'] = user_data
+                            st.success(message)
+                            st.rerun()
+                        else:
+                            st.error(message)
+                    else:
+                        st.warning("⚠️ Por favor completa todos los campos")
+        
+        # TAB 2: REGISTRO
+        with tab2:
+            st.markdown("### Crea tu Cuenta")
+            with st.form("register_form"):
+                new_username = st.text_input("👤 Nombre de Usuario", placeholder="Elige un nombre de usuario único")
+                new_email = st.text_input("📧 Email", placeholder="tu@email.com")
+                new_password = st.text_input("🔒 Contraseña", type="password", placeholder="Mínimo 6 caracteres", help="La contraseña debe tener al menos 6 caracteres")
+                confirm_password = st.text_input("🔒 Confirmar Contraseña", type="password", placeholder="Repite tu contraseña")
+                
+                register_button = st.form_submit_button("✨ Crear Cuenta", use_container_width=True)
+                
+                if register_button:
+                    if new_username and new_email and new_password and confirm_password:
+                        if new_password != confirm_password:
+                            st.error("❌ Las contraseñas no coinciden")
+                        elif len(new_password) < 6:
+                            st.error("❌ La contraseña debe tener al menos 6 caracteres")
+                        else:
+                            success, message = register_user(new_username, new_email, new_password)
+                            if success:
+                                st.success(message)
+                                st.info("🔄 Puedes iniciar sesión ahora")
+                            else:
+                                st.error(message)
+                    else:
+                        st.warning("⚠️ Por favor completa todos los campos")
+        
+        st.markdown("---")
+        st.caption("💡 **Nota:** Necesitas Firebase configurado para usar autenticación")
+
+# Sidebar MEJORADO con logo y autenticación
+def render_sidebar(use_cache=True, use_smart_batch=False):
+    """Renderiza el sidebar con logo y autenticación"""
+    # Logo SAVA
+    try:
+        st.image(LOGO_URL, width=120, use_container_width=True)
+    except:
+        try:
+            st.image(LOGO_COLIBRI_URL, width=120, use_container_width=True)
+        except:
+            st.image("https://cdn-icons-png.flaticon.com/512/1094/1094349.png", width=80)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Información del usuario
+    if is_authenticated():
+        user = get_current_user()
+        st.markdown(f"### 👤 {user['username']}")
+        st.markdown(f"📧 {user['email']}")
+        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
+            logout()
+        st.markdown("---")
+    else:
+        st.info("🔒 No has iniciado sesión")
+        if st.button("🔐 Iniciar Sesión", use_container_width=True):
+            st.session_state['show_login'] = True
+            st.rerun()
+        st.markdown("---")
+    
+    st.markdown("### 🌱 SAVA Software")
+    st.markdown("**Agro-Insight Pro v2.1**")
     st.markdown("---")
+    
+    # Estado de conexión
+    col_firebase, col_cache = st.columns(2)
+    with col_firebase:
+        if "firebase_credentials" in st.secrets:
+            st.success("☁️ Cloud")
+        else:
+            st.warning("💾 Local")
+    
+    # Estadísticas de caché
+    cache_mgr = CacheManager()
+    cache_stats = cache_mgr.get_stats()
+    
+    with col_cache:
+        if cache_stats['total_entries'] > 0:
+            st.info(f"🚀 {cache_stats['total_entries']} cached")
+        else:
+            st.info("📦 Caché vacío")
+    
+    st.markdown("---")
+    
+    # Opciones de configuración
+    st.markdown("### ⚙️ Configuración")
+    use_cache = st.checkbox("Usar caché inteligente", value=use_cache, help="Reduce consumo de API hasta 80%")
+    use_smart_batch = st.checkbox("Batch inteligente", value=use_smart_batch, help="Procesa múltiples noticias por prompt")
+    
+    if st.button("🗑️ Limpiar caché"):
+        deleted = cache_mgr.clear_old_entries(max_age_days=30)
+        st.success(f"✅ {deleted} entradas eliminadas")
+    
+    st.markdown("---")
+    st.caption("Desarrollado con ❤️ por SAVA Team")
+    st.caption("Optimizado para reducir costos de API")
+    
+    return use_cache, use_smart_batch
     
     # Estado de conexión
     col_firebase, col_cache = st.columns(2)
@@ -186,13 +377,53 @@ with st.sidebar:
     st.caption("Optimizado para reducir costos de API")
 
 def main():
-    # Header profesional
+    # Inicializar estado de sesión
+    if 'show_login' not in st.session_state:
+        # Verificar si Firebase está configurado
+        firebase_configured = "firebase_credentials" in st.secrets or "firebase" in st.secrets
+        st.session_state['show_login'] = firebase_configured
+    if 'user' not in st.session_state:
+        st.session_state['user'] = None
+    
+    # Verificar autenticación (solo si Firebase está configurado)
+    firebase_configured = "firebase_credentials" in st.secrets or "firebase" in st.secrets
+    
+    if firebase_configured:
+        # Si Firebase está configurado, requerir autenticación
+        if not is_authenticated() and st.session_state.get('show_login', True):
+            show_login_page()
+            return
+        
+        # Si está autenticado, ocultar el flag de login
+        if is_authenticated():
+            st.session_state['show_login'] = False
+    else:
+        # Modo local: crear usuario temporal
+        if 'user' not in st.session_state or st.session_state['user'] is None:
+            st.session_state['user'] = {
+                'username': 'Usuario Local',
+                'email': 'local@sava.local',
+                'role': 'user'
+            }
+    
+    # Renderizar sidebar con autenticación y obtener configuración
+    with st.sidebar:
+        use_cache, use_smart_batch = render_sidebar(
+            use_cache=st.session_state.get('use_cache', True),
+            use_smart_batch=st.session_state.get('use_smart_batch', False)
+        )
+        # Guardar configuración en sesión
+        st.session_state['use_cache'] = use_cache
+        st.session_state['use_smart_batch'] = use_smart_batch
+    
+    # Header profesional mejorado
     col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
     with col_h1:
+        user = get_current_user()
         st.title("📊 SAVA Agro-Insight PRO")
-        st.markdown("*Sistema Inteligente de Análisis de Riesgos Agroindustriales*")
+        st.markdown(f"*Bienvenido, {user['username'] if user else 'Usuario'}* | Sistema Inteligente de Análisis de Riesgos Agroindustriales")
     with col_h2:
-        st.metric("Versión", "2.0 Pro", delta="Optimizado")
+        st.metric("Versión", "2.1 Pro", delta="Optimizado")
     with col_h3:
         if st.button("ℹ️ Ayuda"):
             st.info("""
