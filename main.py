@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 from streamlit_folium import st_folium
 import altair as alt
 from datetime import datetime
+from html import escape as html_escape
 
 # Imports de módulos propios
 from src.utils import load_and_validate_csv
@@ -135,6 +136,104 @@ st.markdown("""
         color: white !important;
     }
     
+    /* Ocultar botón de toggle del sidebar */
+    button[kind="header"] {
+        display: none !important;
+    }
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+    [data-testid="stHeader"] button {
+        display: none !important;
+    }
+    /* Ocultar icono de menú del sidebar */
+    [data-testid="stSidebar"] [data-testid="collapsedControl"],
+    [data-testid="stSidebar"] button[title*="close"],
+    [data-testid="stSidebar"] button[aria-label*="Close"],
+    button[title="Close sidebar"],
+    button[aria-label="Close sidebar"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    /* Ocultar keyboard_double_arrow_right */
+    .keyboard_double_arrow_right,
+    [data-testid*="arrow"],
+    svg[data-testid*="arrow"] {
+        display: none !important;
+    }
+    /* Ocultar controles de expansión del sidebar */
+    section[data-testid="stSidebar"] > div:first-child button {
+        display: none !important;
+    }
+    
+    /* Botones del sidebar mejorados - Mejor contraste */
+    [data-testid="stSidebar"] .stButton>button {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border: 2px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 10px !important;
+        padding: 12px 20px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        letter-spacing: 0.3px !important;
+        width: 100% !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25) !important;
+        transition: all 0.3s ease !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button:hover {
+        background: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35) !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+    }
+    
+    /* Botones secundarios del sidebar - Cerrar sesión, limpiar caché */
+    [data-testid="stSidebar"] .stButton>button[kind="secondary"] {
+        background: rgba(231, 76, 60, 0.25) !important;
+        color: #ffffff !important;
+        border: 2px solid rgba(231, 76, 60, 0.5) !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button[kind="secondary"]:hover {
+        background: rgba(231, 76, 60, 0.4) !important;
+        border-color: rgba(231, 76, 60, 0.7) !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    /* Botones primarios del sidebar */
+    [data-testid="stSidebar"] .stButton>button[type="primary"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button[type="primary"]:hover {
+        background: linear-gradient(135deg, #7c8ef0 0%, #8659b2 100%) !important;
+    }
+    
+    /* Inputs del sidebar */
+    [data-testid="stSidebar"] .stTextInput>div>div>input,
+    [data-testid="stSidebar"] .stTextArea>div>div>textarea {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border-radius: 8px !important;
+    }
+    [data-testid="stSidebar"] .stTextInput>div>div>input:focus,
+    [data-testid="stSidebar"] .stTextArea>div>div>textarea:focus {
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Labels del sidebar */
+    [data-testid="stSidebar"] label {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-weight: 500 !important;
+    }
+    
     /* Tabs mejorados */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
@@ -201,6 +300,142 @@ st.markdown("""
     /* Progress bar mejorado */
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    /* Tarjetas de noticias mejoradas - Más anchas y claras */
+    .news-card {
+        background: white !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        margin-bottom: 15px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        border-left: 5px solid !important;
+        transition: all 0.3s ease !important;
+        width: 100% !important;
+    }
+    .news-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+        transform: translateY(-2px) !important;
+    }
+    .news-card-positive {
+        border-left-color: #27ae60 !important;
+        background: linear-gradient(90deg, #ffffff 0%, #f0fdf4 100%) !important;
+    }
+    .news-card-negative {
+        border-left-color: #e74c3c !important;
+        background: linear-gradient(90deg, #ffffff 0%, #fef2f2 100%) !important;
+    }
+    .news-card-neutral {
+        border-left-color: #95a5a6 !important;
+        background: linear-gradient(90deg, #ffffff 0%, #f8f9fa 100%) !important;
+    }
+    
+    /* Badge de sentimiento */
+    .sentiment-badge {
+        display: inline-block !important;
+        padding: 6px 14px !important;
+        border-radius: 20px !important;
+        font-weight: 600 !important;
+        font-size: 13px !important;
+        letter-spacing: 0.3px !important;
+        margin-bottom: 10px !important;
+    }
+    .sentiment-badge-positive {
+        background: #27ae60 !important;
+        color: white !important;
+    }
+    .sentiment-badge-negative {
+        background: #e74c3c !important;
+        color: white !important;
+    }
+    .sentiment-badge-neutral {
+        background: #95a5a6 !important;
+        color: white !important;
+    }
+    
+    /* Título de noticia */
+    .news-title {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        color: #1a1a2e !important;
+        margin-bottom: 10px !important;
+        line-height: 1.4 !important;
+        font-family: 'Poppins', sans-serif !important;
+    }
+    
+    /* Cuerpo de noticia */
+    .news-body {
+        font-size: 15px !important;
+        color: #4a5568 !important;
+        line-height: 1.6 !important;
+        margin-bottom: 12px !important;
+    }
+    
+    /* Explicación IA */
+    .news-analysis {
+        font-size: 14px !important;
+        color: #718096 !important;
+        font-style: italic !important;
+        padding: 10px !important;
+        background: rgba(102, 126, 234, 0.05) !important;
+        border-radius: 8px !important;
+        border-left: 3px solid #667eea !important;
+    }
+    
+    /* Ocultar iconos de expander */
+    .streamlit-expanderHeader {
+        display: none !important;
+    }
+    
+    /* Mejorar visualización de noticias - Ancho completo */
+    .element-container {
+        max-width: 100% !important;
+    }
+    
+    /* Contenedor principal más ancho */
+    .main .block-container {
+        max-width: 1200px !important;
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
+    }
+    
+    /* Tarjetas de noticias con mejor espaciado */
+    .news-card {
+        margin-bottom: 20px !important;
+    }
+    
+    /* Asegurar que el texto del sidebar sea completamente visible */
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] label {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* Mejorar visibilidad de métricas */
+    [data-testid="stSidebar"] [data-testid="stMetricValue"] {
+        color: rgba(255, 255, 255, 0.95) !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    /* Mejorar visibilidad de info/warning/success en sidebar */
+    [data-testid="stSidebar"] .stSuccess,
+    [data-testid="stSidebar"] .stInfo,
+    [data-testid="stSidebar"] .stWarning {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+    }
+    
+    /* Ocultar todos los iconos de toggle del sidebar */
+    button[data-baseweb="button"][aria-label*="Close"],
+    button[data-baseweb="button"][aria-label*="close"],
+    button[title*="Close"],
+    button[title*="close"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -417,25 +652,9 @@ def main():
         st.session_state['use_smart_batch'] = use_smart_batch
     
     # Header profesional mejorado
-    col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
-    with col_h1:
-        user = get_current_user()
-        st.title("📊 SAVA Agro-Insight PRO")
-        st.markdown(f"*Bienvenido, {user['username'] if user else 'Usuario'}* | Sistema Inteligente de Análisis de Riesgos Agroindustriales")
-    with col_h2:
-        st.metric("Versión", "2.1 Pro", delta="Optimizado")
-    with col_h3:
-        if st.button("ℹ️ Ayuda"):
-            st.info("""
-            **Funcionalidades Principales:**
-            - 📂 Análisis CSV con caché
-            - 🌐 Noticias en vivo
-            - 🗺️ Mapa geográfico
-            - 🤖 Chatbot inteligente
-            - 📈 Análisis de tendencias
-            - 🔔 Sistema de alertas
-            - 📄 Exportación PDF/Excel
-            """)
+    user = get_current_user()
+    st.title("📊 SAVA Agro-Insight PRO")
+    st.markdown(f"*Bienvenido, {user['username'] if user else 'Usuario'}* | Sistema Inteligente de Análisis de Riesgos Agroindustriales")
     
     st.markdown("---")
     
@@ -573,18 +792,59 @@ def main():
             col3.metric("🔴 Negativas", neg_res, delta=f"{neg_res/total_res*100:.1f}%")
             col4.metric("⚪ Neutras", neu_res, delta=f"{neu_res/total_res*100:.1f}%")
             
-            # Resultados en tarjetas expandibles
+            # Resultados en tarjetas mejoradas - Más anchas y claras
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             for index, row in df_res.iterrows():
-                color_map = {"Positivo": "green", "Negativo": "red", "Neutro": "gray"}
-                color = color_map.get(row['sentimiento_ia'], "gray")
+                sentimiento = row.get('sentimiento_ia', 'Neutro')
+                titular = str(row.get('titular', 'Sin título'))
+                cuerpo = str(row.get('cuerpo', ''))
+                explicacion = str(row.get('explicacion_ia', 'Análisis automático'))
+                fecha = str(row.get('fecha', 'N/A'))
                 
-                with st.expander(f":{color}[{row['sentimiento_ia']}] - {row['titular']}", expanded=False):
-                    col_a, col_b = st.columns([3, 1])
-                    with col_a:
-                        st.write(f"**🤖 Análisis:**{row['explicacion_ia']}")
-                    with col_b:
-                        st.caption(f"📅 {row['fecha']}")
-                        st.caption(f"🆔 {row['id_original']}")
+                # Determinar clase CSS y badge según sentimiento
+                if sentimiento == "Positivo":
+                    card_class = "news-card-positive"
+                    badge_class = "sentiment-badge-positive"
+                    emoji = "🟢"
+                    label = "POSITIVO"
+                elif sentimiento == "Negativo":
+                    card_class = "news-card-negative"
+                    badge_class = "sentiment-badge-negative"
+                    emoji = "🔴"
+                    label = "NEGATIVO"
+                else:
+                    card_class = "news-card-neutral"
+                    badge_class = "sentiment-badge-neutral"
+                    emoji = "⚪"
+                    label = "NEUTRO"
+                
+                # Crear tarjeta de noticia con HTML personalizado - Mejorada
+                # Escapar caracteres HTML especiales
+                titular_escaped = html_escape(titular)
+                cuerpo_escaped = html_escape(str(cuerpo))
+                explicacion_escaped = html_escape(explicacion)
+                
+                st.markdown(f"""
+                <div class="news-card {card_class}" style="width: 100%; margin: 15px 0;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <span class="sentiment-badge {badge_class}">{emoji} {label}</span>
+                    </div>
+                    <div class="news-title" style="font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 12px; line-height: 1.4;">
+                        {titular_escaped}
+                    </div>
+                    <div class="news-body" style="font-size: 15px; color: #4a5568; line-height: 1.7; margin-bottom: 15px; max-height: none;">
+                        {cuerpo_escaped}
+                    </div>
+                    <div class="news-analysis" style="font-size: 14px; color: #2d3748; font-style: normal; padding: 12px; background: rgba(102, 126, 234, 0.08); border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 12px;">
+                        <strong>🤖 Análisis IA:</strong> {explicacion_escaped}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px; color: #718096; display: flex; gap: 15px; align-items: center;">
+                        <span>📅 {fecha}</span>
+                        <span>🆔 {row.get('id_original', 'N/A')}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             
             # Botón de guardado
             if st.button("💾 Guardar en Firebase"):
