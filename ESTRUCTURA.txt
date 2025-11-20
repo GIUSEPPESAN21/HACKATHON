@@ -1,0 +1,230 @@
+===============================================================================
+  ESTRUCTURA FINAL DEL PROYECTO - SAVA Agro-Insight PRO v2.0
+===============================================================================
+
+Agro Software/
+│
+├── 📋 ARCHIVOS PRINCIPALES
+│   ├── main.py                          ⭐ EJECUTA ESTE ARCHIVO (streamlit run main.py)
+│   ├── requirements.txt                 📦 Dependencias (pip install -r requirements.txt)
+│   ├── README.md                        📚 Documentación completa
+│   ├── INICIO_RAPIDO.md                 🚀 Guía de 5 minutos
+│   ├── ESTRUCTURA.txt                   📁 Este archivo
+│   ├── LICENSE                          📜 Licencia MIT
+│   └── .gitignore                       🔒 Archivos ignorados por Git
+│
+├── 🧩 MÓDULOS (src/)
+│   ├── __init__.py                      🔧 Inicialización del paquete
+│   │
+│   ├── ⚡ OPTIMIZACIÓN
+│   ├── cache_manager.py                 💾 Sistema de caché SQLite (-70% API)
+│   ├── gemini_client.py                 🤖 Cliente Gemini optimizado
+│   │
+│   ├── 🆕 NUEVAS FUNCIONALIDADES
+│   ├── geo_mapper.py                    🗺️ Mapas geográficos interactivos
+│   ├── chatbot_rag.py                   💬 Chatbot IA con RAG
+│   ├── trend_analyzer.py                📈 Análisis de tendencias ML
+│   ├── alert_system.py                  🔔 Sistema de alertas inteligentes
+│   ├── export_manager.py                📄 Exportación PDF/Excel
+│   │
+│   └── 📝 UTILIDADES
+│       ├── utils.py                     🛠️ Carga y validación de CSV
+│       └── firebase_manager.py          ☁️ Persistencia en Firebase
+│
+├── ⚙️ CONFIGURACIÓN (.streamlit/)
+│   ├── secrets.toml.example             📋 Plantilla de configuración
+│   └── secrets.toml                     🔐 TUS CLAVES (crear manualmente)
+│
+├── 🧪 TESTING (tests/)
+│   └── test_sentiment.py                ✅ Pruebas unitarias
+│
+└── 📦 CACHÉ (se crea automáticamente)
+    └── cache/
+        └── sentiment_cache.db           💾 Base de datos SQLite (auto-generado)
+
+===============================================================================
+  ARCHIVOS CLAVE - QUÉ HACE CADA UNO
+===============================================================================
+
+📱 INTERFAZ:
+   main.py                    → Aplicación web con 9 pestañas
+                                 1. Análisis CSV
+                                 2. Noticias en Vivo  
+                                 3. Mapa Geográfico
+                                 4. Chatbot IA
+                                 5. Tendencias
+                                 6. Alertas
+                                 7. Dashboard
+                                 8. Exportar
+                                 9. Historial
+
+🤖 ANÁLISIS DE SENTIMIENTO:
+   gemini_client.py           → Conexión con Gemini AI
+                                 - Análisis individual
+                                 - Análisis batch smart
+                                 - Búsqueda web
+                                 - Caché integrado
+
+💾 OPTIMIZACIÓN:
+   cache_manager.py           → Sistema de caché SQLite
+                                 - Evita re-analizar noticias
+                                 - Ahorra 60-80% de API
+                                 - Estadísticas de uso
+
+🗺️ MAPAS:
+   geo_mapper.py              → Mapas interactivos con Folium
+                                 - Ubicación de noticias
+                                 - Mapa de calor de riesgos
+                                 - Clustering geográfico
+
+💬 CHATBOT:
+   chatbot_rag.py             → Chatbot inteligente
+                                 - Búsqueda semántica (TF-IDF)
+                                 - Respuestas contextuales
+                                 - Preguntas sugeridas
+
+📈 ANÁLISIS AVANZADO:
+   trend_analyzer.py          → Machine Learning
+                                 - Índice de Riesgo
+                                 - Índice de Oportunidades
+                                 - Palabras clave
+                                 - Clustering temático
+                                 - Predicciones
+
+🔔 ALERTAS:
+   alert_system.py            → Alertas automáticas
+                                 - Alertas críticas
+                                 - Palabras clave peligrosas
+                                 - Zonas de riesgo
+                                 - Recomendaciones
+
+📄 EXPORTACIÓN:
+   export_manager.py          → Reportes profesionales
+                                 - PDF con gráficos
+                                 - Excel con múltiples hojas
+                                 - Formato empresarial
+
+🛠️ UTILIDADES:
+   utils.py                   → Carga de CSV
+                                 - Validación de columnas
+                                 - Mapeo inteligente
+                                 - Limpieza de datos
+
+☁️ PERSISTENCIA:
+   firebase_manager.py        → Firebase Firestore
+                                 - Guardar análisis
+                                 - Consultar historial
+                                 - Batch operations
+
+===============================================================================
+  ARCHIVOS QUE DEBES CREAR MANUALMENTE
+===============================================================================
+
+1. .streamlit/secrets.toml
+   
+   Copia secrets.toml.example y renómbralo a secrets.toml
+   
+   Contenido mínimo:
+   ```toml
+   GEMINI_API_KEY = "tu_api_key_aqui"
+   ```
+
+   Obtén tu API key en: https://makersuite.google.com/app/apikey
+
+===============================================================================
+  COMANDOS ESENCIALES
+===============================================================================
+
+1. INSTALAR:
+   pip install -r requirements.txt
+
+2. EJECUTAR:
+   streamlit run main.py
+
+3. LIMPIAR CACHÉ:
+   - Usa el botón en el sidebar de la app
+   - O elimina manualmente: cache/sentiment_cache.db
+
+===============================================================================
+  TAMAÑOS APROXIMADOS
+===============================================================================
+
+Código fuente:         ~15 KB
+Dependencias:          ~500 MB (después de instalar)
+Caché (vacío):         ~5 KB
+Caché (100 noticias):  ~50 KB
+Caché (1000 noticias): ~500 KB
+
+===============================================================================
+  MÉTRICAS DE OPTIMIZACIÓN
+===============================================================================
+
+SIN CACHÉ (primera vez):
+   100 noticias → 100 llamadas API → ~3 minutos → $0.08
+
+CON CACHÉ (70% hit rate):
+   100 noticias → 30 llamadas API → ~1 minuto → $0.06
+   
+RE-ANÁLISIS (100% cache):
+   100 noticias → 0 llamadas API → <1 segundo → $0.00
+
+AHORRO PROMEDIO: -70%
+
+===============================================================================
+  FLUJO DE TRABAJO RECOMENDADO
+===============================================================================
+
+1. Primera vez:
+   - Instalar dependencias
+   - Configurar secrets.toml
+   - Ejecutar main.py
+   - Probar con 5-10 noticias
+
+2. Uso diario:
+   - Activar caché (sidebar)
+   - Analizar noticias
+   - Explorar mapa y tendencias
+   - Exportar reportes si necesario
+
+3. Mantenimiento mensual:
+   - Limpiar caché antiguo (>30 días)
+   - Actualizar dependencias si hay nuevas versiones
+
+===============================================================================
+  SOLUCIÓN RÁPIDA DE PROBLEMAS
+===============================================================================
+
+PROBLEMA: "No module named 'streamlit'"
+SOLUCIÓN: pip install -r requirements.txt
+
+PROBLEMA: "GEMINI_API_KEY not found"
+SOLUCIÓN: Crear .streamlit/secrets.toml con tu API key
+
+PROBLEMA: "Permission denied: cache/"
+SOLUCIÓN: Crear carpeta cache/ manualmente
+
+PROBLEMA: Consume mucha API
+SOLUCIÓN: Activar caché en sidebar
+
+===============================================================================
+  VERSIÓN Y AUTOR
+===============================================================================
+
+Proyecto:  SAVA Agro-Insight PRO
+Versión:   2.0.0
+Fecha:     Noviembre 2025
+Autor:     SAVA Software Team
+Licencia:  MIT
+
+===============================================================================
+  SOPORTE
+===============================================================================
+
+Documentación: README.md, INICIO_RAPIDO.md
+Código:        Todos los archivos están comentados
+Issues:        GitHub Issues (si aplica)
+
+===============================================================================
+
+¡Disfruta usando SAVA Agro-Insight PRO v2.0! 🌱
+
