@@ -720,7 +720,7 @@ def main():
                         hide_index=True
                     )
                 
-                col_btn1, col_btn2, col_btn3 = st.columns(3)
+                col_btn1, col_btn2, col_btn3 = st.columns(4)
                 
                 with col_btn1:
                     analyze_btn = st.button("🧠 Analizar con IA", type="primary", width='stretch')
