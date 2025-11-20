@@ -4,7 +4,10 @@ import streamlit as st
 import time
 import re
 import logging
-from duckduckgo_search import DDGS
+try:
+    from ddgs import DDGS  # Nuevo nombre del paquete
+except ImportError:
+    from duckduckgo_search import DDGS  # Fallback al nombre antiguo
 
 # Configuración de logging
 logging.basicConfig(level=logging.INFO)
@@ -56,7 +59,8 @@ class AgroSentimentAnalyzer:
                         model_names_short.append(full_name)
             
             if model_names_short:
-                logger.info(f"📋 Modelos disponibles ({len(model_names_short)}): {', '.join(model_names_short[:10])}")
+                # Solo loggear una vez o en modo debug para reducir verbosidad
+                logger.debug(f"📋 Modelos disponibles ({len(model_names_short)}): {', '.join(model_names_short[:10])}")
             return model_names_short  # Retornar nombres cortos para facilitar uso
         except Exception as e:
             logger.error(f"Error al listar modelos: {e}")
@@ -182,17 +186,26 @@ ARGUMENTO: [Explicación clara de 1-2 frases en español sobre por qué clasific
 
 IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin texto adicional."""
 
-        # Lista de modelos ordenada por EFICIENCIA DE CUOTA
-        # NOTA: Actualizado a modelos disponibles en 2025
-        # Los modelos gemini-1.5-flash y gemini-1.5-pro fueron descontinuados (septiembre 2025)
-        # Usar nombres exactos según la API de Gemini
+        # Lista de modelos ordenada por EFICIENCIA Y DISPONIBILIDAD
+        # NOTA: Actualizado según modelos realmente disponibles (2025)
+        # Priorizar modelos que sabemos que funcionan según logs del sistema
         candidates = [
-            "gemini-1.5-flash-latest", # Versión latest de 1.5 flash (más común)
-            "gemini-1.5-pro-latest",   # Versión latest de 1.5 pro
-            "gemini-2.0-flash-exp",    # Modelo flash experimental 2.0
-            "gemini-2.0-flash",        # Modelo flash estable 2.0
-            "gemini-pro",               # Modelo estándar (compatibilidad legacy)
+            "gemini-2.5-flash",        # Modelo más nuevo y eficiente (prioridad 1)
+            "gemini-2.0-flash",        # Modelo estable que funciona correctamente (prioridad 2)
+            "gemini-2.0-flash-001",    # Variante estable de 2.0 flash
+            "gemini-2.5-pro",          # Modelo pro más reciente
+            "gemini-pro",              # Modelo estándar (compatibilidad legacy)
         ]
+        
+        # Si tenemos modelos en cache que funcionaron antes, priorizarlos
+        if self.available_models_cache:
+            # Filtrar modelos conocidos que funcionan bien
+            preferred_models = [m for m in self.available_models_cache 
+                               if any(x in m for x in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"]) 
+                               and "exp" not in m.lower()]  # Evitar experimentales con problemas de cuota
+            if preferred_models:
+                # Insertar modelos preferidos al inicio
+                candidates = preferred_models[:3] + [c for c in candidates if c not in preferred_models]
 
         for model_name in candidates:
             try:
@@ -217,10 +230,20 @@ IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin 
                 
                 if response.parts and response.text:
                     resultado = self._parse_text_response(response.text)
-                    # Log para debugging (solo en desarrollo)
+                    # Guardar modelo exitoso en cache para priorizarlo en el futuro
+                    if self.available_models_cache is None:
+                        self.available_models_cache = []
+                    if model_name not in self.available_models_cache:
+                        self.available_models_cache.insert(0, model_name)  # Priorizar al inicio
+                    elif self.available_models_cache.index(model_name) > 0:
+                        # Mover al inicio si ya estaba en la lista
+                        self.available_models_cache.remove(model_name)
+                        self.available_models_cache.insert(0, model_name)
+                    
+                    # Log para debugging (solo en desarrollo, menos verboso)
                     if resultado["sentimiento"] == "Neutro":
-                        logger.info(f"Clasificación Neutro detectada. Respuesta Gemini: {response.text[:200]}")
-                    logger.info(f"✅ Modelo {model_name} funcionó correctamente")
+                        logger.debug(f"Clasificación Neutro detectada. Respuesta Gemini: {response.text[:200]}")
+                    logger.debug(f"✅ Modelo {model_name} funcionó correctamente")
                     return resultado
                 else:
                     logger.warning(f"⚠️ Modelo {model_name} no retornó contenido válido")
@@ -231,9 +254,15 @@ IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin 
                 # Manejo de errores específicos
                 if "404" in error_msg or "not found" in error_msg.lower():
                     logger.warning(f"⚠️ Modelo {model_name} no encontrado (404). Probando siguiente modelo...")
+                    # Remover modelo inexistente del cache si está ahí
+                    if self.available_models_cache and model_name in self.available_models_cache:
+                        self.available_models_cache.remove(model_name)
                     continue
                 elif "429" in error_msg or "quota" in error_msg.lower() or "rate limit" in error_msg.lower():
                     logger.warning(f"⚠️ Cuota agotada en {model_name}. Esperando 20s para recuperar...")
+                    # Remover modelo con problemas de cuota del cache si está ahí
+                    if self.available_models_cache and model_name in self.available_models_cache:
+                        self.available_models_cache.remove(model_name)
                     time.sleep(20) # Pausa larga de seguridad
                     continue
                 else:
@@ -246,41 +275,56 @@ IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin 
         # Usar cache si está disponible, sino intentar listar ahora
         available_models = self.available_models_cache if self.available_models_cache else self._list_available_models()
         
-        # Si encontramos modelos disponibles, intentar usarlos
+        # Filtrar modelos: priorizar estables, evitar experimentales con problemas de cuota
         if available_models:
-            logger.info(f"🔄 Intentando con modelos detectados automáticamente: {', '.join(available_models[:3])}")
-            for model_name in available_models[:3]:  # Intentar solo los primeros 3 para no demorar mucho
-                try:
-                    model = genai.GenerativeModel(
-                        model_name,
-                        generation_config={
-                            "temperature": 0.1, 
-                            "max_output_tokens": 300,
-                            "top_p": 0.8,
-                            "top_k": 40
-                        },
-                        safety_settings={
-                            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                        }
-                    )
-                    
-                    response = model.generate_content(prompt)
-                    
-                    if response.parts and response.text:
-                        resultado = self._parse_text_response(response.text)
-                        logger.info(f"✅ Modelo {model_name} funcionó correctamente (detectado automáticamente)")
-                        # Actualizar cache con este modelo que funcionó
-                        if model_name not in (self.available_models_cache or []):
+            # Filtrar modelos estables (evitar exp, preview, etc. que pueden tener problemas)
+            stable_models = [m for m in available_models 
+                           if not any(x in m.lower() for x in ["exp", "preview", "experimental"])
+                           and any(x in m for x in ["gemini-2.5", "gemini-2.0", "gemini-pro"])]
+            
+            # Si no hay estables, usar los disponibles pero evitar los que sabemos que fallan
+            if not stable_models:
+                stable_models = [m for m in available_models if m not in candidates]  # Evitar los que ya fallaron
+            
+            # Si encontramos modelos disponibles, intentar usarlos
+            if stable_models:
+                logger.debug(f"🔄 Intentando con modelos detectados automáticamente: {', '.join(stable_models[:3])}")
+                for model_name in stable_models[:3]:  # Intentar solo los primeros 3 para no demorar mucho
+                    try:
+                        model = genai.GenerativeModel(
+                            model_name,
+                            generation_config={
+                                "temperature": 0.1, 
+                                "max_output_tokens": 300,
+                                "top_p": 0.8,
+                                "top_k": 40
+                            },
+                            safety_settings={
+                                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                            }
+                        )
+                        
+                        response = model.generate_content(prompt)
+                        
+                        if response.parts and response.text:
+                            resultado = self._parse_text_response(response.text)
+                            logger.debug(f"✅ Modelo {model_name} funcionó correctamente (detectado automáticamente)")
+                            # Actualizar cache con este modelo que funcionó
                             if self.available_models_cache is None:
                                 self.available_models_cache = []
-                            self.available_models_cache.insert(0, model_name)  # Poner al inicio para priorizar
-                        return resultado
-                except Exception as e:
-                    logger.debug(f"Modelo {model_name} falló: {str(e)[:100]}")
-                    continue
+                            if model_name not in self.available_models_cache:
+                                self.available_models_cache.insert(0, model_name)  # Poner al inicio para priorizar
+                            elif self.available_models_cache.index(model_name) > 0:
+                                # Mover al inicio si ya estaba en la lista
+                                self.available_models_cache.remove(model_name)
+                                self.available_models_cache.insert(0, model_name)
+                            return resultado
+                    except Exception as e:
+                        logger.debug(f"Modelo {model_name} falló: {str(e)[:100]}")
+                        continue
         
         # Si llegamos aquí, todos los intentos fallaron
         logger.error("❌ Todos los modelos de Gemini fallaron. No se pudo analizar la noticia.")
