@@ -189,18 +189,32 @@ st.markdown("""
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
     }
     
-    /* Botones secundarios del sidebar - Cerrar sesión, limpiar caché */
-    [data-testid="stSidebar"] .stButton>button[kind="secondary"] {
-        background: rgba(231, 76, 60, 0.25) !important;
-        color: #ffffff !important;
-        border: 2px solid rgba(231, 76, 60, 0.5) !important;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
-    }
-    [data-testid="stSidebar"] .stButton>button[kind="secondary"]:hover {
+    /* Botones secundarios del sidebar - Cerrar sesión, limpiar caché - VISIBLES */
+    [data-testid="stSidebar"] .stButton>button[kind="secondary"],
+    [data-testid="stSidebar"] button[key="btn_logout_sidebar"],
+    [data-testid="stSidebar"] button[key="btn_clear_cache"] {
         background: rgba(231, 76, 60, 0.4) !important;
-        border-color: rgba(231, 76, 60, 0.7) !important;
         color: #ffffff !important;
-        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+        border: 2px solid rgba(231, 76, 60, 0.8) !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+        font-weight: 600 !important;
+        padding: 12px 20px !important;
+        margin: 8px 0 !important;
+        width: 100% !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 100 !important;
+        position: relative !important;
+    }
+    [data-testid="stSidebar"] .stButton>button[kind="secondary"]:hover,
+    [data-testid="stSidebar"] button[key="btn_logout_sidebar"]:hover,
+    [data-testid="stSidebar"] button[key="btn_clear_cache"]:hover {
+        background: rgba(231, 76, 60, 0.6) !important;
+        border-color: rgba(231, 76, 60, 1) !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6) !important;
+        transform: translateY(-1px) !important;
     }
     
     /* Botones primarios del sidebar */
@@ -445,11 +459,11 @@ def show_login_page():
     """Muestra la página de login/registro"""
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Logo SAVA
+        # Logo SAVA - REDUCIDO
         try:
-            st.image(LOGO_URL, width=200, use_container_width=True)
+            st.image(LOGO_URL, width=120, use_container_width=False)
         except:
-            st.image(LOGO_COLIBRI_URL, width=200, use_container_width=True)
+            st.image(LOGO_COLIBRI_URL, width=120, use_container_width=False)
         
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("### 🌱 SAVA Agro-Insight PRO")
@@ -529,8 +543,15 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
         user = get_current_user()
         st.markdown(f"### 👤 {user['username']}")
         st.markdown(f"📧 {user['email']}")
-        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
-            logout()
+        # Botón Cerrar Sesión - VISIBLE Y FUNCIONAL
+        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary", key="btn_logout_sidebar"):
+            try:
+                logout()
+                st.session_state['user'] = None
+                st.success("✅ Sesión cerrada correctamente")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error al cerrar sesión: {str(e)}")
         st.markdown("---")
     else:
         st.info("🔒 No has iniciado sesión")
@@ -553,11 +574,16 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     
     # Estadísticas de caché
     cache_mgr = CacheManager()
-    cache_stats = cache_mgr.get_stats()
+    try:
+        cache_stats = cache_mgr.get_stats()
+        if cache_stats is None:
+            cache_stats = {'total_entries': 0, 'total_hits': 0}
+    except Exception as e:
+        cache_stats = {'total_entries': 0, 'total_hits': 0}
     
     with col_cache:
-        if cache_stats['total_entries'] > 0:
-            st.info(f"🚀 {cache_stats['total_entries']} cached")
+        if cache_stats.get('total_entries', 0) > 0:
+            st.info(f"🚀 {cache_stats.get('total_entries', 0)} cached")
         else:
             st.info("📦 Caché vacío")
     
@@ -568,48 +594,22 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     use_cache = st.checkbox("Usar caché inteligente", value=use_cache, help="Reduce consumo de API hasta 80%")
     use_smart_batch = st.checkbox("Batch inteligente", value=use_smart_batch, help="Procesa múltiples noticias por prompt")
     
-    if st.button("🗑️ Limpiar caché"):
-        deleted = cache_mgr.clear_old_entries(max_age_days=30)
-        st.success(f"✅ {deleted} entradas eliminadas")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Botón Limpiar Caché - VISIBLE Y FUNCIONAL
+    if st.button("🗑️ Limpiar caché", use_container_width=True, type="secondary", key="btn_clear_cache"):
+        try:
+            deleted = cache_mgr.clear_old_entries(max_age_days=30)
+            st.success(f"✅ {deleted} entradas eliminadas")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error al limpiar caché: {str(e)}")
     
     st.markdown("---")
     st.caption("Desarrollado con ❤️ por SAVA Team")
     st.caption("Optimizado para reducir costos de API")
     
     return use_cache, use_smart_batch
-    
-    # Estado de conexión
-    col_firebase, col_cache = st.columns(2)
-    with col_firebase:
-        if "firebase_credentials" in st.secrets:
-            st.success("☁️ Cloud")
-        else:
-            st.warning("💾 Local")
-    
-    # Estadísticas de caché
-    cache_mgr = CacheManager()
-    cache_stats = cache_mgr.get_stats()
-    
-    with col_cache:
-        if cache_stats['total_entries'] > 0:
-            st.info(f"🚀 {cache_stats['total_entries']} cached")
-        else:
-            st.info("📦 Caché vacío")
-    
-    st.markdown("---")
-    
-    # Opciones de configuración
-    st.markdown("### ⚙️ Configuración")
-    use_cache = st.checkbox("Usar caché inteligente", value=True, help="Reduce consumo de API hasta 80%")
-    use_smart_batch = st.checkbox("Batch inteligente", value=False, help="Procesa múltiples noticias por prompt")
-    
-    if st.button("🗑️ Limpiar caché"):
-        deleted = cache_mgr.clear_old_entries(max_age_days=30)
-        st.success(f"✅ {deleted} entradas eliminadas")
-    
-    st.markdown("---")
-    st.caption("Desarrollado con ❤️ por SAVA Team")
-    st.caption("Optimizado para reducir costos de API")
 
 def main():
     # Inicializar estado de sesión
@@ -735,7 +735,30 @@ def main():
                     cache_info = st.button("📊 Info de Caché", width='stretch')
                 
                 if cache_info:
-                    st.json(cache_stats)
+                    # Mostrar estadísticas de caché de forma segura
+                    try:
+                        cache_mgr_temp = CacheManager()
+                        cache_stats_temp = cache_mgr_temp.get_stats()
+                        if cache_stats_temp is None:
+                            cache_stats_temp = {'total_entries': 0, 'total_hits': 0, 'cache_hit_rate': '0%', 'distribution': {}}
+                    except Exception as e:
+                        cache_stats_temp = {'total_entries': 0, 'total_hits': 0, 'cache_hit_rate': '0%', 'distribution': {}}
+                    
+                    st.markdown("### 📊 Estadísticas de Caché")
+                    st.markdown("---")
+                    col_stat1, col_stat2 = st.columns(2)
+                    with col_stat1:
+                        st.metric("Total Entradas", cache_stats_temp.get('total_entries', 0))
+                        st.metric("Total Hits", cache_stats_temp.get('total_hits', 0))
+                    with col_stat2:
+                        hit_rate = cache_stats_temp.get('cache_hit_rate', '0%')
+                        st.metric("Hit Rate", hit_rate if isinstance(hit_rate, str) else f"{hit_rate}%")
+                    
+                    if cache_stats_temp.get('distribution'):
+                        st.markdown("---")
+                        st.markdown("**📊 Distribución por Sentimiento:**")
+                        for sent, count in cache_stats_temp['distribution'].items():
+                            st.write(f"- **{sent}:** {count} noticias")
                 
                 # Análisis normal
                 if analyze_btn:
