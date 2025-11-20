@@ -516,10 +516,10 @@ st.markdown("""
         padding: 1rem !important;
     }
     
-    /* Asegurar que los botones no se solapen con expanders */
+    /* Asegurar que los botones no se solapen con expanders - COMPACTO */
     .stButton {
-        margin-top: 1rem !important;
-        margin-bottom: 0.5rem !important;
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
         clear: both !important;
         position: relative !important;
         z-index: 10 !important;
@@ -530,11 +530,11 @@ st.markdown("""
         margin-bottom: 1.5rem !important;
     }
     
-    /* Asegurar que los botones tengan espacio suficiente y no se solapen */
+    /* Asegurar que los botones tengan espacio suficiente y no se solapen - COMPACTO */
     [data-testid="column"] .stButton {
-        margin-top: 1rem !important;
-        margin-bottom: 1rem !important;
-        padding: 0.5rem 0 !important;
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+        padding: 0.2rem 0 !important;
     }
     
     /* Asegurar que no haya texto flotante sobre los botones */
@@ -572,22 +572,22 @@ st.markdown("""
         clear: both !important;
     }
     
-    /* Espaciado entre elementos - Más compacto */
+    /* Espaciado entre elementos - MUY COMPACTO */
     .element-container {
-        margin-bottom: 0.75rem !important;
+        margin-bottom: 0.4rem !important;
         clear: both !important;
     }
     
     /* Reducir espaciado en separadores */
     hr {
-        margin-top: 1rem !important;
-        margin-bottom: 1rem !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
     }
     
     /* Métricas más compactas */
     [data-testid="stMetricContainer"] {
-        padding: 12px 15px !important;
-        margin: 8px 0 !important;
+        padding: 10px 12px !important;
+        margin: 4px 0 !important;
     }
     
     /* Reducir espaciado en columnas */
@@ -597,13 +597,154 @@ st.markdown("""
     
     /* Espaciado compacto en tabs */
     .stTabs {
-        margin-bottom: 1rem !important;
+        margin-bottom: 0.5rem !important;
     }
     
     /* Reducir padding en tarjetas de noticias */
     .news-card {
-        padding: 15px !important;
-        margin-bottom: 12px !important;
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* Reducir espaciado en párrafos y texto */
+    .stMarkdown p {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en inputs */
+    .stTextInput,
+    .stTextArea {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en checkboxes y radio buttons */
+    .stCheckbox,
+    .stRadio {
+        margin-top: 0.2rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    /* Reducir espaciado en info boxes */
+    .stInfo,
+    .stSuccess,
+    .stWarning,
+    .stError {
+        margin-top: 0.4rem !important;
+        margin-bottom: 0.4rem !important;
+        padding: 0.6rem 0.8rem !important;
+    }
+    
+    /* Reducir espaciado en dataframes */
+    [data-testid="stDataFrame"] {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en spinners */
+    .stSpinner {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en progress bars */
+    .stProgress {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en separadores horizontales (---) */
+    hr,
+    .stMarkdown hr {
+        margin-top: 0.4rem !important;
+        margin-bottom: 0.4rem !important;
+        border: none !important;
+        border-top: 1px solid #e0e0e0 !important;
+    }
+    
+    /* Reducir espaciado en subheaders y títulos */
+    h3, h4, h5, h6 {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en contenedores de gráficas */
+    [data-testid="stPlotlyChart"] {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en captions */
+    .stCaption {
+        margin-top: 0.2rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    /* Reducir espaciado en expanders */
+    .streamlit-expander {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en file uploader */
+    .stFileUploader {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en selectboxes y multiselect */
+    .stSelectbox,
+    .stMultiselect {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en number input */
+    .stNumberInput {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en sliders */
+    .stSlider {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en containers */
+    .stContainer {
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Reducir espaciado en columnas cuando tienen contenido */
+    [data-testid="column"] > div {
+        margin-top: 0.2rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    /* Reducir altura de saltos de línea <br> */
+    br {
+        line-height: 0.3 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        content: "" !important;
+    }
+    
+    /* Reducir espaciado en todos los elementos markdown */
+    .stMarkdown {
+        margin-top: 0.2rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    
+    /* Reducir espaciado en divs vacíos o con solo espacios */
+    div:empty,
+    p:empty {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
     }
     
     /* Mejorar visualización de noticias - Ancho completo */
@@ -720,7 +861,6 @@ def show_login_page():
         except:
             st.image(LOGO_COLIBRI_URL, width=120, use_container_width=False)
         
-        st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("### 🌱 SAVA Agro-Insight PRO")
         st.markdown("**Sistema Inteligente de Análisis de Riesgos Agroindustriales**")
         st.markdown("---")
@@ -791,8 +931,6 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
         except:
             st.image("https://cdn-icons-png.flaticon.com/512/1094/1094349.png", width=80)
     
-    st.markdown("<br>", unsafe_allow_html=True)
-    
     # Información del usuario
     if is_authenticated():
         user = get_current_user()
@@ -848,8 +986,6 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     st.markdown("### ⚙️ Configuración")
     use_cache = st.checkbox("Usar caché inteligente", value=use_cache, help="Reduce consumo de API hasta 80%")
     use_smart_batch = st.checkbox("Batch inteligente", value=use_smart_batch, help="Procesa múltiples noticias por prompt")
-    
-    st.markdown("<br>", unsafe_allow_html=True)
     
     # Botón Limpiar Caché - VISIBLE Y FUNCIONAL
     if st.button("🗑️ Limpiar caché", use_container_width=True, type="secondary", key="btn_clear_cache"):
@@ -976,9 +1112,6 @@ def main():
                         hide_index=True
                     )
                 
-                # Espaciado antes de los botones
-                st.markdown("<br>", unsafe_allow_html=True)
-                
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
                 with col_btn1:
@@ -1075,8 +1208,6 @@ def main():
             col4.metric("⚪ Neutras", neu_res, delta=f"{neu_res/total_res*100:.1f}%")
             
             # Resultados en tarjetas mejoradas - Más anchas y claras
-            st.markdown("<br>", unsafe_allow_html=True)
-            
             for index, row in df_res.iterrows():
                 sentimiento = row.get('sentimiento_ia', 'Neutro')
                 titular = str(row.get('titular', 'Sin título'))
