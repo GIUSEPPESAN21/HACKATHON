@@ -687,7 +687,7 @@ def main():
     with tabs[0]:
         st.header("📂 Análisis Inteligente de CSV")
         
-        col_upload, col_info = st.columns([3, 1])
+        col_upload, col_info = st.columns([2, 1])
         
         with col_upload:
             uploaded_file = st.file_uploader(
