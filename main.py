@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 from streamlit_folium import st_folium
 import altair as alt
 from datetime import datetime
+from html import escape as html_escape
 
 # Imports de módulos propios
 from src.utils import load_and_validate_csv
@@ -57,11 +58,40 @@ st.markdown("""
         color: #1a1a2e !important;
     }
     
-    /* Texto general */
+    /* Texto general mejorado - Evitar solapamiento */
     body, .stMarkdown, p, div, span {
         font-family: 'Inter', sans-serif !important;
         font-size: 15px !important;
-        line-height: 1.6 !important;
+        line-height: 1.7 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Evitar texto superpuesto en métricas */
+    [data-testid="stMetricContainer"] {
+        padding: 15px !important;
+        margin: 10px 0 !important;
+        min-height: 80px !important;
+    }
+    
+    [data-testid="stMetricValue"] {
+        margin-bottom: 5px !important;
+        padding-bottom: 5px !important;
+    }
+    
+    [data-testid="stMetricDelta"] {
+        margin-top: 5px !important;
+        padding-top: 5px !important;
+    }
+    
+    /* Evitar solapamiento en columnas */
+    .stColumn {
+        padding: 0 10px !important;
+    }
+    
+    /* Mejorar espaciado en tarjetas */
+    .element-container {
+        margin-bottom: 20px !important;
     }
     
     /* Botones premium mejorados */
@@ -135,6 +165,104 @@ st.markdown("""
         color: white !important;
     }
     
+    /* Ocultar botón de toggle del sidebar */
+    button[kind="header"] {
+        display: none !important;
+    }
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+    [data-testid="stHeader"] button {
+        display: none !important;
+    }
+    /* Ocultar icono de menú del sidebar */
+    [data-testid="stSidebar"] [data-testid="collapsedControl"],
+    [data-testid="stSidebar"] button[title*="close"],
+    [data-testid="stSidebar"] button[aria-label*="Close"],
+    button[title="Close sidebar"],
+    button[aria-label="Close sidebar"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    /* Ocultar keyboard_double_arrow_right */
+    .keyboard_double_arrow_right,
+    [data-testid*="arrow"],
+    svg[data-testid*="arrow"] {
+        display: none !important;
+    }
+    /* Ocultar controles de expansión del sidebar */
+    section[data-testid="stSidebar"] > div:first-child button {
+        display: none !important;
+    }
+    
+    /* Botones del sidebar mejorados - Mejor contraste */
+    [data-testid="stSidebar"] .stButton>button {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border: 2px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 10px !important;
+        padding: 12px 20px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        letter-spacing: 0.3px !important;
+        width: 100% !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25) !important;
+        transition: all 0.3s ease !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button:hover {
+        background: rgba(255, 255, 255, 0.3) !important;
+        border-color: rgba(255, 255, 255, 0.6) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35) !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+    }
+    
+    /* Botones secundarios del sidebar - Cerrar sesión, limpiar caché */
+    [data-testid="stSidebar"] .stButton>button[kind="secondary"] {
+        background: rgba(231, 76, 60, 0.25) !important;
+        color: #ffffff !important;
+        border: 2px solid rgba(231, 76, 60, 0.5) !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button[kind="secondary"]:hover {
+        background: rgba(231, 76, 60, 0.4) !important;
+        border-color: rgba(231, 76, 60, 0.7) !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    /* Botones primarios del sidebar */
+    [data-testid="stSidebar"] .stButton>button[type="primary"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button[type="primary"]:hover {
+        background: linear-gradient(135deg, #7c8ef0 0%, #8659b2 100%) !important;
+    }
+    
+    /* Inputs del sidebar */
+    [data-testid="stSidebar"] .stTextInput>div>div>input,
+    [data-testid="stSidebar"] .stTextArea>div>div>textarea {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border-radius: 8px !important;
+    }
+    [data-testid="stSidebar"] .stTextInput>div>div>input:focus,
+    [data-testid="stSidebar"] .stTextArea>div>div>textarea:focus {
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Labels del sidebar */
+    [data-testid="stSidebar"] label {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-weight: 500 !important;
+    }
+    
     /* Tabs mejorados */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
@@ -201,6 +329,397 @@ st.markdown("""
     /* Progress bar mejorado */
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    /* Tarjetas de noticias mejoradas - Más anchas y claras */
+    .news-card {
+        background: white !important;
+        border-radius: 12px !important;
+        padding: 25px !important;
+        margin-bottom: 20px !important;
+        margin-top: 10px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        border-left: 5px solid !important;
+        transition: all 0.3s ease !important;
+        width: 100% !important;
+        clear: both !important;
+        display: block !important;
+        overflow: visible !important;
+    }
+    .news-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+        transform: translateY(-2px) !important;
+    }
+    .news-card-positive {
+        border-left-color: #27ae60 !important;
+        background: linear-gradient(90deg, #ffffff 0%, #f0fdf4 100%) !important;
+    }
+    .news-card-negative {
+        border-left-color: #e74c3c !important;
+        background: linear-gradient(90deg, #ffffff 0%, #fef2f2 100%) !important;
+    }
+    .news-card-neutral {
+        border-left-color: #95a5a6 !important;
+        background: linear-gradient(90deg, #ffffff 0%, #f8f9fa 100%) !important;
+    }
+    
+    /* Badge de sentimiento - Mejorado para evitar solapamiento */
+    .sentiment-badge {
+        display: inline-block !important;
+        padding: 8px 16px !important;
+        border-radius: 20px !important;
+        font-weight: 700 !important;
+        font-size: 13px !important;
+        letter-spacing: 0.5px !important;
+        margin-bottom: 15px !important;
+        margin-right: 10px !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+    }
+    .sentiment-badge-positive {
+        background: #27ae60 !important;
+        color: white !important;
+    }
+    .sentiment-badge-negative {
+        background: #e74c3c !important;
+        color: white !important;
+    }
+    .sentiment-badge-neutral {
+        background: #95a5a6 !important;
+        color: white !important;
+    }
+    
+    /* Título de noticia - Mejorado para evitar solapamiento */
+    .news-title {
+        font-size: 20px !important;
+        font-weight: 700 !important;
+        color: #1a1a2e !important;
+        margin-bottom: 15px !important;
+        margin-top: 5px !important;
+        line-height: 1.5 !important;
+        font-family: 'Poppins', sans-serif !important;
+        clear: both !important;
+        display: block !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Cuerpo de noticia - Mejorado */
+    .news-body {
+        font-size: 15px !important;
+        color: #4a5568 !important;
+        line-height: 1.8 !important;
+        margin-bottom: 15px !important;
+        margin-top: 10px !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        display: block !important;
+        clear: both !important;
+    }
+    
+    /* Explicación IA - Mejorado */
+    .news-analysis {
+        font-size: 14px !important;
+        color: #2d3748 !important;
+        font-style: normal !important;
+        padding: 12px 15px !important;
+        background: rgba(102, 126, 234, 0.08) !important;
+        border-radius: 8px !important;
+        border-left: 4px solid #667eea !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+        display: block !important;
+        clear: both !important;
+        line-height: 1.6 !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Ocultar iconos de expander */
+    .streamlit-expanderHeader {
+        display: none !important;
+    }
+    
+    /* Mejorar visualización de noticias - Ancho completo */
+    .element-container {
+        max-width: 100% !important;
+    }
+    
+    /* Contenedor principal más ancho */
+    .main .block-container {
+        max-width: 1200px !important;
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+    }
+    
+    /* Tarjetas de noticias con mejor espaciado - Sin solapamiento */
+    .news-card {
+        margin-bottom: 25px !important;
+        margin-top: 15px !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* Evitar solapamiento en expanders */
+    .streamlit-expander {
+        margin-bottom: 20px !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* Mejorar espaciado en tabs */
+    .stTabs {
+        margin-bottom: 25px !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en columnas para evitar solapamiento */
+    [data-testid="column"] {
+        padding: 0 10px !important;
+        margin-bottom: 15px !important;
+        clear: both !important;
+        position: relative !important;
+    }
+    
+    /* Evitar solapamiento de texto en métricas */
+    [data-testid="stMetric"] {
+        padding: 15px !important;
+        margin: 10px 0 !important;
+        min-height: 100px !important;
+        clear: both !important;
+        position: relative !important;
+    }
+    
+    /* Mejorar espaciado en subheaders */
+    h2, h3, h4 {
+        margin-top: 30px !important;
+        margin-bottom: 20px !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* Evitar solapamiento en párrafos y divs */
+    p, div {
+        margin-bottom: 10px !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en secciones */
+    section {
+        margin-bottom: 25px !important;
+        clear: both !important;
+    }
+    
+    /* Evitar solapamiento de elementos inline */
+    span, label, small {
+        display: inline-block !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Asegurar que el texto del sidebar sea completamente visible */
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] div,
+    [data-testid="stSidebar"] label {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    /* Mejorar visibilidad de métricas */
+    [data-testid="stSidebar"] [data-testid="stMetricValue"] {
+        color: rgba(255, 255, 255, 0.95) !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    /* Mejorar visibilidad de info/warning/success en sidebar */
+    [data-testid="stSidebar"] .stSuccess,
+    [data-testid="stSidebar"] .stInfo,
+    [data-testid="stSidebar"] .stWarning {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+    }
+    
+    /* Ocultar todos los iconos de toggle del sidebar y flechas */
+    button[data-baseweb="button"][aria-label*="Close"],
+    button[data-baseweb="button"][aria-label*="close"],
+    button[title*="Close"],
+    button[title*="close"],
+    button[aria-label*="Close sidebar"],
+    button[title*="Close sidebar"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Ocultar icono keyboard_double_arrow_right específicamente */
+    svg[data-testid*="keyboard"],
+    svg[data-testid*="arrow"],
+    svg[data-testid*="Keyboard"],
+    [data-testid*="keyboard"],
+    [data-testid*="Keyboard"],
+    button[aria-label*="Close sidebar"],
+    button[aria-label*="Close side panel"],
+    button[kind="header"][aria-label*="Close"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        left: -9999px !important;
+    }
+    
+    /* Evitar solapamiento de texto en todos los elementos */
+    * {
+        box-sizing: border-box !important;
+    }
+    
+    /* Mejorar espaciado vertical para evitar montado de texto */
+    .stMarkdown {
+        margin-bottom: 15px !important;
+        padding: 0 !important;
+        clear: both !important;
+        display: block !important;
+    }
+    
+    /* Evitar solapamiento en captions y textos pequeños */
+    .stCaption,
+    caption,
+    small {
+        display: block !important;
+        clear: both !important;
+        margin-bottom: 8px !important;
+        line-height: 1.6 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Evitar solapamiento en info/warning/success/error */
+    .stAlert,
+    .stSuccess,
+    .stInfo,
+    .stWarning,
+    .stError {
+        margin: 15px 0 !important;
+        clear: both !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 10 !important;
+    }
+    
+    /* Mejorar espaciado en listas */
+    ul, ol, li {
+        margin-bottom: 8px !important;
+        clear: both !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Asegurar que las tarjetas de noticias no se solapen */
+    .news-card-positive,
+    .news-card-negative,
+    .news-card-neutral {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 auto 25px auto !important;
+        padding: 25px !important;
+        clear: both !important;
+        position: relative !important;
+        overflow: visible !important;
+        min-height: 180px !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Asegurar que los elementos dentro de las tarjetas no se solapen */
+    .news-card-positive > *,
+    .news-card-negative > *,
+    .news-card-neutral > * {
+        margin-bottom: 12px !important;
+        clear: both !important;
+        display: block !important;
+        position: relative !important;
+    }
+    
+    /* Mejorar el badge para que no se solape con el título */
+    .sentiment-badge {
+        display: inline-block !important;
+        margin-bottom: 12px !important;
+        margin-right: 10px !important;
+        vertical-align: top !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar título de noticia para que no se solape */
+    .news-title {
+        clear: both !important;
+        display: block !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+        padding: 0 !important;
+        line-height: 1.5 !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+        hyphens: auto !important;
+    }
+    
+    /* Mejorar cuerpo de noticia */
+    .news-body {
+        clear: both !important;
+        display: block !important;
+        margin-top: 8px !important;
+        margin-bottom: 12px !important;
+        padding: 0 !important;
+        line-height: 1.7 !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Mejorar análisis IA */
+    .news-analysis {
+        clear: both !important;
+        display: block !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+        padding: 12px 15px !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Ocultar controles de sidebar */
+    [data-testid="stSidebar"][data-testid*="Collapse"],
+    [data-testid="stSidebar"] button[aria-label*="close" i],
+    [data-testid="stSidebar"] button[title*="close" i] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+    
+    /* Mejorar botón de limpiar caché en sidebar */
+    [data-testid="stSidebar"] button[key="btn_clear_cache"],
+    [data-testid="stSidebar"] button[key="btn_logout"] {
+        background: rgba(231, 76, 60, 0.3) !important;
+        color: #ffffff !important;
+        border: 2px solid rgba(231, 76, 60, 0.6) !important;
+        font-weight: 600 !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        padding: 12px 20px !important;
+    }
+    [data-testid="stSidebar"] button[key="btn_clear_cache"]:hover,
+    [data-testid="stSidebar"] button[key="btn_logout"]:hover {
+        background: rgba(231, 76, 60, 0.5) !important;
+        border-color: rgba(231, 76, 60, 0.8) !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -289,13 +808,21 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Información del usuario
+    # Información del usuario - Mejorado
     if is_authenticated():
         user = get_current_user()
-        st.markdown(f"### 👤 {user['username']}")
+        st.markdown("### 👤 Usuario")
+        st.markdown(f"**{user['username']}**")
         st.markdown(f"📧 {user['email']}")
-        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Botón de cerrar sesión - Asegurar visibilidad y funcionalidad
+        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary", key="btn_logout_sidebar"):
             logout()
+            st.session_state['use_cache'] = use_cache
+            st.session_state['use_smart_batch'] = use_smart_batch
+            st.rerun()
+        
         st.markdown("---")
     else:
         st.info("🔒 No has iniciado sesión")
@@ -333,44 +860,17 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     use_cache = st.checkbox("Usar caché inteligente", value=use_cache, help="Reduce consumo de API hasta 80%")
     use_smart_batch = st.checkbox("Batch inteligente", value=use_smart_batch, help="Procesa múltiples noticias por prompt")
     
-    if st.button("🗑️ Limpiar caché"):
+    # Botón limpiar caché con mejor visibilidad
+    if st.button("🗑️ Limpiar caché", use_container_width=True, key="btn_clear_cache"):
         deleted = cache_mgr.clear_old_entries(max_age_days=30)
         st.success(f"✅ {deleted} entradas eliminadas")
+        st.rerun()
     
     st.markdown("---")
     st.caption("Desarrollado con ❤️ por SAVA Team")
     st.caption("Optimizado para reducir costos de API")
     
     return use_cache, use_smart_batch
-    
-    # Estado de conexión
-    col_firebase, col_cache = st.columns(2)
-    with col_firebase:
-        if "firebase_credentials" in st.secrets:
-            st.success("☁️ Cloud")
-        else:
-            st.warning("💾 Local")
-    
-    # Estadísticas de caché
-    cache_mgr = CacheManager()
-    cache_stats = cache_mgr.get_stats()
-    
-    with col_cache:
-        if cache_stats['total_entries'] > 0:
-            st.info(f"🚀 {cache_stats['total_entries']} cached")
-        else:
-            st.info("📦 Caché vacío")
-    
-    st.markdown("---")
-    
-    # Opciones de configuración
-    st.markdown("### ⚙️ Configuración")
-    use_cache = st.checkbox("Usar caché inteligente", value=True, help="Reduce consumo de API hasta 80%")
-    use_smart_batch = st.checkbox("Batch inteligente", value=False, help="Procesa múltiples noticias por prompt")
-    
-    if st.button("🗑️ Limpiar caché"):
-        deleted = cache_mgr.clear_old_entries(max_age_days=30)
-        st.success(f"✅ {deleted} entradas eliminadas")
     
     st.markdown("---")
     st.caption("Desarrollado con ❤️ por SAVA Team")
@@ -417,25 +917,9 @@ def main():
         st.session_state['use_smart_batch'] = use_smart_batch
     
     # Header profesional mejorado
-    col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
-    with col_h1:
-        user = get_current_user()
-        st.title("📊 SAVA Agro-Insight PRO")
-        st.markdown(f"*Bienvenido, {user['username'] if user else 'Usuario'}* | Sistema Inteligente de Análisis de Riesgos Agroindustriales")
-    with col_h2:
-        st.metric("Versión", "2.1 Pro", delta="Optimizado")
-    with col_h3:
-        if st.button("ℹ️ Ayuda"):
-            st.info("""
-            **Funcionalidades Principales:**
-            - 📂 Análisis CSV con caché
-            - 🌐 Noticias en vivo
-            - 🗺️ Mapa geográfico
-            - 🤖 Chatbot inteligente
-            - 📈 Análisis de tendencias
-            - 🔔 Sistema de alertas
-            - 📄 Exportación PDF/Excel
-            """)
+    user = get_current_user()
+    st.title("📊 SAVA Agro-Insight PRO")
+    st.markdown(f"*Bienvenido, {user['username'] if user else 'Usuario'}* | Sistema Inteligente de Análisis de Riesgos Agroindustriales")
     
     st.markdown("---")
     
@@ -513,10 +997,31 @@ def main():
                         batch_btn = False
                 
                 with col_btn3:
-                    cache_info = st.button("📊 Info de Caché", width='stretch')
+                    cache_info = st.button("📊 Info de Caché", use_container_width=True)
                 
                 if cache_info:
-                    st.json(cache_stats)
+                    # Obtener estadísticas de caché
+                    cache_mgr_temp = CacheManager()
+                    cache_stats_temp = cache_mgr_temp.get_stats()
+                    
+                    # Mostrar estadísticas en formato legible (sin st.json que causa error)
+                    st.markdown("### 📊 Estadísticas de Caché")
+                    st.markdown("---")
+                    
+                    col_stat1, col_stat2 = st.columns(2)
+                    with col_stat1:
+                        st.metric("Total Entradas", cache_stats_temp.get('total_entries', 0))
+                        st.metric("Total Hits", cache_stats_temp.get('total_hits', 0))
+                    with col_stat2:
+                        hit_rate = cache_stats_temp.get('cache_hit_rate', '0%')
+                        st.metric("Hit Rate", hit_rate if isinstance(hit_rate, str) else f"{hit_rate}%")
+                    
+                    # Distribución de sentimientos
+                    if cache_stats_temp.get('distribution'):
+                        st.markdown("---")
+                        st.markdown("**📊 Distribución por Sentimiento:**")
+                        for sent, count in cache_stats_temp['distribution'].items():
+                            st.write(f"- **{sent}:** {count} noticias")
                 
                 # Análisis normal
                 if analyze_btn:
@@ -573,18 +1078,60 @@ def main():
             col3.metric("🔴 Negativas", neg_res, delta=f"{neg_res/total_res*100:.1f}%")
             col4.metric("⚪ Neutras", neu_res, delta=f"{neu_res/total_res*100:.1f}%")
             
-            # Resultados en tarjetas expandibles
+            # Resultados en tarjetas mejoradas - Más anchas y claras
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             for index, row in df_res.iterrows():
-                color_map = {"Positivo": "green", "Negativo": "red", "Neutro": "gray"}
-                color = color_map.get(row['sentimiento_ia'], "gray")
+                sentimiento = row.get('sentimiento_ia', 'Neutro')
+                titular = str(row.get('titular', 'Sin título'))
+                cuerpo = str(row.get('cuerpo', ''))
+                explicacion = str(row.get('explicacion_ia', 'Análisis automático'))
+                fecha = str(row.get('fecha', 'N/A'))
                 
-                with st.expander(f":{color}[{row['sentimiento_ia']}] - {row['titular']}", expanded=False):
-                    col_a, col_b = st.columns([3, 1])
-                    with col_a:
-                        st.write(f"**🤖 Análisis:**{row['explicacion_ia']}")
-                    with col_b:
-                        st.caption(f"📅 {row['fecha']}")
-                        st.caption(f"🆔 {row['id_original']}")
+                # Determinar clase CSS y badge según sentimiento
+                if sentimiento == "Positivo":
+                    card_class = "news-card-positive"
+                    badge_class = "sentiment-badge-positive"
+                    emoji = "🟢"
+                    label = "POSITIVO"
+                elif sentimiento == "Negativo":
+                    card_class = "news-card-negative"
+                    badge_class = "sentiment-badge-negative"
+                    emoji = "🔴"
+                    label = "NEGATIVO"
+                else:
+                    card_class = "news-card-neutral"
+                    badge_class = "sentiment-badge-neutral"
+                    emoji = "⚪"
+                    label = "NEUTRO"
+                
+                # Crear tarjeta de noticia con HTML personalizado - Mejorada
+                # Escapar caracteres HTML especiales
+                titular_escaped = html_escape(titular)
+                cuerpo_escaped = html_escape(str(cuerpo))
+                explicacion_escaped = html_escape(explicacion)
+                
+                # Crear tarjeta de noticia mejorada - Sin solapamiento, más ancha
+                st.markdown(f"""
+                <div class="news-card {card_class}" style="width: 100%; margin: 20px 0; clear: both; display: block; position: relative; overflow: visible;">
+                    <div style="display: block; margin-bottom: 18px; clear: both; width: 100%;">
+                        <span class="sentiment-badge {badge_class}" style="display: inline-block; margin-bottom: 0;">{emoji} {label}</span>
+                    </div>
+                    <h3 style="font-size: 22px; font-weight: 700; color: #1a1a2e; margin: 0 0 18px 0; padding: 0; line-height: 1.5; clear: both; display: block; word-wrap: break-word; overflow-wrap: break-word; width: 100%;">
+                        {titular_escaped}
+                    </h3>
+                    <div style="font-size: 15px; color: #4a5568; line-height: 1.8; margin: 0 0 18px 0; padding: 0; clear: both; display: block; word-wrap: break-word; overflow-wrap: break-word; width: 100%; white-space: normal;">
+                        {cuerpo_escaped}
+                    </div>
+                    <div style="font-size: 14px; color: #2d3748; font-style: normal; padding: 15px; background: rgba(102, 126, 234, 0.08); border-radius: 8px; border-left: 4px solid #667eea; margin: 0 0 18px 0; clear: both; display: block; word-wrap: break-word; line-height: 1.6; width: 100%;">
+                        <strong>🤖 Análisis IA:</strong> {explicacion_escaped}
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.08); font-size: 12px; color: #718096; display: flex; gap: 20px; align-items: center; clear: both; width: 100%;">
+                        <span>📅 {fecha}</span>
+                        <span>🆔 {row.get('id_original', 'N/A')}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
             
             # Botón de guardado
             if st.button("💾 Guardar en Firebase"):
@@ -916,15 +1463,81 @@ def main():
                         if themes:
                             for i, theme in enumerate(themes):
                                 cluster_data = df_clustered[df_clustered['cluster'] == i]
-                                with st.expander(f"📁 **Cluster {i+1}**: {theme} ({len(cluster_data)} noticias)", expanded=(i==0)):
-                                    st.caption(f"**Tema principal:** {theme}")
-                                    st.caption(f"**Noticias en este cluster:** {len(cluster_data)}")
-                                    
-                                    # Mostrar distribución de sentimientos en el cluster
-                                    sent_dist = cluster_data['sentimiento_ia'].value_counts()
-                                    st.write("Distribución de sentimientos:")
+                                # Limpiar el tema y escapar HTML
+                                theme_clean = str(theme).strip()
+                                theme_escaped = html_escape(theme_clean)
+                                theme_display = theme_clean[:60] + ('...' if len(theme_clean) > 60 else '')
+                                
+                                # Tarjeta de cluster mejorada - Sin texto montado
+                                st.markdown(f"""
+                                <div style="background: white; padding: 25px; border-radius: 12px; margin: 20px 0; 
+                                            border-left: 5px solid #667eea; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                            clear: both; display: block; width: 100%;">
+                                    <h3 style="margin: 0 0 15px 0; padding: 0; color: #1a1a2e; font-size: 18px; font-weight: 600; 
+                                               clear: both; display: block; line-height: 1.4;">
+                                        📁 Cluster {i+1}: {html_escape(theme_display)}
+                                    </h3>
+                                    <div style="margin: 10px 0; clear: both; display: block;">
+                                        <strong style="color: #4a5568;">Palabras clave:</strong> 
+                                        <span style="color: #2d3748; font-family: monospace; background: #f7fafc; padding: 4px 8px; 
+                                                     border-radius: 4px; display: inline-block; margin-left: 8px;">
+                                            {theme_escaped}
+                                        </span>
+                                    </div>
+                                    <div style="margin: 10px 0; clear: both; display: block;">
+                                        <strong style="color: #4a5568;">Noticias:</strong> 
+                                        <span style="color: #667eea; font-weight: 600; font-size: 16px;">
+                                            {len(cluster_data)}
+                                        </span>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                # Mostrar distribución de sentimientos - Mejorado
+                                sent_dist = cluster_data['sentimiento_ia'].value_counts()
+                                
+                                col_dist1, col_dist2 = st.columns([1, 1])
+                                with col_dist1:
+                                    st.markdown("**📊 Distribución de Sentimientos:**")
                                     for sent, count in sent_dist.items():
-                                        st.write(f"- {sent}: {count} ({count/len(cluster_data)*100:.1f}%)")
+                                        percentage = (count/len(cluster_data)*100) if len(cluster_data) > 0 else 0
+                                        if sent == "Positivo":
+                                            color = "#27ae60"
+                                            emoji_sent = "🟢"
+                                        elif sent == "Negativo":
+                                            color = "#e74c3c"
+                                            emoji_sent = "🔴"
+                                        else:
+                                            color = "#95a5a6"
+                                            emoji_sent = "⚪"
+                                        
+                                        st.markdown(f"""
+                                        <div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.02); border-radius: 6px; 
+                                                    clear: both; display: block;">
+                                            <span style='color: {color}; font-weight: 600;'>{emoji_sent} {sent}:</span> 
+                                            <strong>{count}</strong> ({percentage:.1f}%)
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                
+                                # Mostrar algunas noticias del cluster - Mejorado
+                                with col_dist2:
+                                    st.markdown("**📰 Muestra de Noticias:**")
+                                    sample_news = cluster_data.head(5)
+                                    for idx, news_row in sample_news.iterrows():
+                                        sent = news_row.get('sentimiento_ia', 'Neutro')
+                                        emoji = "🟢" if sent == "Positivo" else "🔴" if sent == "Negativo" else "⚪"
+                                        titular_full = str(news_row.get('titular', ''))
+                                        titular_short = titular_full[:70] + ('...' if len(titular_full) > 70 else '')
+                                        titular_escaped_cluster = html_escape(titular_short)
+                                        
+                                        st.markdown(f"""
+                                        <div style="margin: 8px 0; padding: 8px; background: rgba(0,0,0,0.02); border-radius: 6px;
+                                                    clear: both; display: block; line-height: 1.5;">
+                                            {emoji} {titular_escaped_cluster}
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                
+                                st.markdown("---")
                         else:
                             st.warning("No se pudieron generar temas. Intenta con más noticias.")
                     except Exception as e:
