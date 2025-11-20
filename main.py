@@ -58,11 +58,40 @@ st.markdown("""
         color: #1a1a2e !important;
     }
     
-    /* Texto general */
+    /* Texto general mejorado - Evitar solapamiento */
     body, .stMarkdown, p, div, span {
         font-family: 'Inter', sans-serif !important;
         font-size: 15px !important;
-        line-height: 1.6 !important;
+        line-height: 1.7 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Evitar texto superpuesto en métricas */
+    [data-testid="stMetricContainer"] {
+        padding: 15px !important;
+        margin: 10px 0 !important;
+        min-height: 80px !important;
+    }
+    
+    [data-testid="stMetricValue"] {
+        margin-bottom: 5px !important;
+        padding-bottom: 5px !important;
+    }
+    
+    [data-testid="stMetricDelta"] {
+        margin-top: 5px !important;
+        padding-top: 5px !important;
+    }
+    
+    /* Evitar solapamiento en columnas */
+    .stColumn {
+        padding: 0 10px !important;
+    }
+    
+    /* Mejorar espaciado en tarjetas */
+    .element-container {
+        margin-bottom: 20px !important;
     }
     
     /* Botones premium mejorados */
@@ -274,22 +303,52 @@ st.markdown("""
         margin: 10px 0;
     }
     
-    /* Chat messages */
+    /* Chat messages - MEJORADO: Sin solapamiento */
     .chat-message {
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 20px 0;
         animation: fadeIn 0.3s;
+        clear: both !important;
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.7 !important;
     }
     .user-message {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        margin-left: 20%;
+        margin-left: 15%;
+        margin-right: 0;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+    .user-message p,
+    .user-message div,
+    .user-message span {
+        margin-bottom: 8px !important;
+        line-height: 1.7 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
     }
     .bot-message {
         background: white;
         border: 1px solid #e0e0e0;
-        margin-right: 20%;
+        margin-right: 15%;
+        margin-left: 0;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .bot-message p,
+    .bot-message div,
+    .bot-message span {
+        margin-bottom: 8px !important;
+        line-height: 1.7 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
     }
     
     @keyframes fadeIn {
@@ -306,12 +365,16 @@ st.markdown("""
     .news-card {
         background: white !important;
         border-radius: 12px !important;
-        padding: 20px !important;
-        margin-bottom: 15px !important;
+        padding: 25px !important;
+        margin-bottom: 20px !important;
+        margin-top: 10px !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
         border-left: 5px solid !important;
         transition: all 0.3s ease !important;
         width: 100% !important;
+        clear: both !important;
+        display: block !important;
+        overflow: visible !important;
     }
     .news-card:hover {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
@@ -330,15 +393,18 @@ st.markdown("""
         background: linear-gradient(90deg, #ffffff 0%, #f8f9fa 100%) !important;
     }
     
-    /* Badge de sentimiento */
+    /* Badge de sentimiento - Mejorado para evitar solapamiento */
     .sentiment-badge {
         display: inline-block !important;
-        padding: 6px 14px !important;
+        padding: 8px 16px !important;
         border-radius: 20px !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         font-size: 13px !important;
-        letter-spacing: 0.3px !important;
-        margin-bottom: 10px !important;
+        letter-spacing: 0.5px !important;
+        margin-bottom: 15px !important;
+        margin-right: 10px !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
     }
     .sentiment-badge-positive {
         background: #27ae60 !important;
@@ -353,33 +419,49 @@ st.markdown("""
         color: white !important;
     }
     
-    /* Título de noticia */
+    /* Título de noticia - Mejorado para evitar solapamiento */
     .news-title {
-        font-size: 18px !important;
-        font-weight: 600 !important;
+        font-size: 20px !important;
+        font-weight: 700 !important;
         color: #1a1a2e !important;
-        margin-bottom: 10px !important;
-        line-height: 1.4 !important;
+        margin-bottom: 15px !important;
+        margin-top: 5px !important;
+        line-height: 1.5 !important;
         font-family: 'Poppins', sans-serif !important;
+        clear: both !important;
+        display: block !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
     }
     
-    /* Cuerpo de noticia */
+    /* Cuerpo de noticia - Mejorado */
     .news-body {
         font-size: 15px !important;
         color: #4a5568 !important;
-        line-height: 1.6 !important;
-        margin-bottom: 12px !important;
+        line-height: 1.8 !important;
+        margin-bottom: 15px !important;
+        margin-top: 10px !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        display: block !important;
+        clear: both !important;
     }
     
-    /* Explicación IA */
+    /* Explicación IA - Mejorado */
     .news-analysis {
         font-size: 14px !important;
-        color: #718096 !important;
-        font-style: italic !important;
-        padding: 10px !important;
-        background: rgba(102, 126, 234, 0.05) !important;
+        color: #2d3748 !important;
+        font-style: normal !important;
+        padding: 12px 15px !important;
+        background: rgba(102, 126, 234, 0.08) !important;
         border-radius: 8px !important;
-        border-left: 3px solid #667eea !important;
+        border-left: 4px solid #667eea !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+        display: block !important;
+        clear: both !important;
+        line-height: 1.6 !important;
+        word-wrap: break-word !important;
     }
     
     /* Ocultar iconos de expander */
@@ -397,11 +479,76 @@ st.markdown("""
         max-width: 1200px !important;
         padding-left: 3rem !important;
         padding-right: 3rem !important;
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
     }
     
-    /* Tarjetas de noticias con mejor espaciado */
+    /* Tarjetas de noticias con mejor espaciado - Sin solapamiento */
     .news-card {
+        margin-bottom: 25px !important;
+        margin-top: 15px !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* Evitar solapamiento en expanders */
+    .streamlit-expander {
         margin-bottom: 20px !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* Mejorar espaciado en tabs */
+    .stTabs {
+        margin-bottom: 25px !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en columnas para evitar solapamiento */
+    [data-testid="column"] {
+        padding: 0 10px !important;
+        margin-bottom: 15px !important;
+        clear: both !important;
+        position: relative !important;
+    }
+    
+    /* Evitar solapamiento de texto en métricas */
+    [data-testid="stMetric"] {
+        padding: 15px !important;
+        margin: 10px 0 !important;
+        min-height: 100px !important;
+        clear: both !important;
+        position: relative !important;
+    }
+    
+    /* Mejorar espaciado en subheaders */
+    h2, h3, h4 {
+        margin-top: 30px !important;
+        margin-bottom: 20px !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* Evitar solapamiento en párrafos y divs */
+    p, div {
+        margin-bottom: 10px !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en secciones */
+    section {
+        margin-bottom: 25px !important;
+        clear: both !important;
+    }
+    
+    /* Evitar solapamiento de elementos inline */
+    span, label, small {
+        display: inline-block !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
     }
     
     /* Asegurar que el texto del sidebar sea completamente visible */
@@ -428,14 +575,328 @@ st.markdown("""
         padding: 10px !important;
     }
     
-    /* Ocultar todos los iconos de toggle del sidebar */
+    /* Ocultar todos los iconos de toggle del sidebar y flechas */
     button[data-baseweb="button"][aria-label*="Close"],
     button[data-baseweb="button"][aria-label*="close"],
     button[title*="Close"],
-    button[title*="close"] {
+    button[title*="close"],
+    button[aria-label*="Close sidebar"],
+    button[title*="Close sidebar"] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Ocultar icono keyboard_double_arrow_right específicamente */
+    svg[data-testid*="keyboard"],
+    svg[data-testid*="arrow"],
+    svg[data-testid*="Keyboard"],
+    [data-testid*="keyboard"],
+    [data-testid*="Keyboard"],
+    button[aria-label*="Close sidebar"],
+    button[aria-label*="Close side panel"],
+    button[kind="header"][aria-label*="Close"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        position: absolute !important;
+        left: -9999px !important;
+    }
+    
+    /* Evitar solapamiento de texto en todos los elementos */
+    * {
+        box-sizing: border-box !important;
+    }
+    
+    /* Mejorar espaciado vertical para evitar montado de texto */
+    .stMarkdown {
+        margin-bottom: 15px !important;
+        padding: 0 !important;
+        clear: both !important;
+        display: block !important;
+        line-height: 1.7 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Asegurar que todos los elementos de texto tengan espaciado adecuado */
+    .stMarkdown p,
+    .stMarkdown div,
+    .stMarkdown span {
+        margin-bottom: 12px !important;
+        line-height: 1.7 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        display: block !important;
+        clear: both !important;
+    }
+    
+    /* Evitar solapamiento en elementos inline */
+    .stMarkdown strong,
+    .stMarkdown b,
+    .stMarkdown em,
+    .stMarkdown i {
+        display: inline !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Evitar solapamiento en captions y textos pequeños */
+    .stCaption,
+    caption,
+    small {
+        display: block !important;
+        clear: both !important;
+        margin-bottom: 8px !important;
+        line-height: 1.6 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Evitar solapamiento en info/warning/success/error */
+    .stAlert,
+    .stSuccess,
+    .stInfo,
+    .stWarning,
+    .stError {
+        margin: 15px 0 !important;
+        clear: both !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 10 !important;
+        padding: 15px !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Mejorar espaciado en expanders */
+    .streamlit-expander {
+        margin: 20px 0 !important;
+        clear: both !important;
+    }
+    
+    .streamlit-expanderContent {
+        padding: 15px !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Mejorar espaciado en inputs y textareas */
+    .stTextInput,
+    .stTextArea {
+        margin-bottom: 15px !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en botones */
+    .stButton {
+        margin: 10px 0 !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar expanders para evitar solapamiento */
+    .streamlit-expanderHeader {
+        padding: 12px 15px !important;
+        margin-bottom: 5px !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+    }
+    
+    .streamlit-expanderContent {
+        padding: 15px !important;
+        margin-top: 5px !important;
+        margin-bottom: 15px !important;
+        clear: both !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.7 !important;
+    }
+    
+    /* Asegurar que los elementos dentro de expanders no se solapen */
+    .streamlit-expanderContent > * {
+        margin-bottom: 12px !important;
+        clear: both !important;
+    }
+    
+    .streamlit-expanderContent > *:last-child {
+        margin-bottom: 0 !important;
+    }
+    
+    /* Mejorar espaciado en contenedores de alertas */
+    [data-testid="stExpander"] {
+        margin-bottom: 20px !important;
+        clear: both !important;
+    }
+    
+    /* Asegurar que las columnas dentro de expanders no se solapen */
+    .streamlit-expanderContent [data-testid="column"] {
+        padding: 0 10px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    /* Mejorar espaciado en listas */
+    ul, ol, li {
+        margin-bottom: 8px !important;
+        clear: both !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Asegurar que las tarjetas de noticias no se solapen */
+    .news-card-positive,
+    .news-card-negative,
+    .news-card-neutral {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 auto 30px auto !important;
+        padding: 30px !important;
+        clear: both !important;
+        position: relative !important;
+        overflow: visible !important;
+        min-height: 200px !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        z-index: 1 !important;
+    }
+    
+    /* Espaciado adicional entre elementos para evitar solapamiento */
+    .news-card-positive + .news-card-positive,
+    .news-card-negative + .news-card-negative,
+    .news-card-neutral + .news-card-neutral,
+    .news-card-positive + .news-card-negative,
+    .news-card-positive + .news-card-neutral,
+    .news-card-negative + .news-card-positive,
+    .news-card-negative + .news-card-neutral,
+    .news-card-neutral + .news-card-positive,
+    .news-card-neutral + .news-card-negative {
+        margin-top: 30px !important;
+    }
+    
+    /* Asegurar que los elementos dentro de las tarjetas no se solapen */
+    .news-card-positive > *,
+    .news-card-negative > *,
+    .news-card-neutral > * {
+        margin-bottom: 15px !important;
+        margin-top: 0 !important;
+        clear: both !important;
+        display: block !important;
+        position: relative !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Espaciado específico para elementos dentro de tarjetas */
+    .news-card-positive h3,
+    .news-card-negative h3,
+    .news-card-neutral h3 {
+        margin-top: 0 !important;
+        margin-bottom: 18px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    .news-card-positive p,
+    .news-card-negative p,
+    .news-card-neutral p {
+        margin-top: 0 !important;
+        margin-bottom: 15px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    
+    /* Mejorar el badge para que no se solape con el título */
+    .sentiment-badge {
+        display: inline-block !important;
+        margin-bottom: 12px !important;
+        margin-right: 10px !important;
+        vertical-align: top !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar título de noticia para que no se solape */
+    .news-title {
+        clear: both !important;
+        display: block !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+        padding: 0 !important;
+        line-height: 1.5 !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+        hyphens: auto !important;
+    }
+    
+    /* Mejorar cuerpo de noticia */
+    .news-body {
+        clear: both !important;
+        display: block !important;
+        margin-top: 8px !important;
+        margin-bottom: 12px !important;
+        padding: 0 !important;
+        line-height: 1.7 !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Mejorar análisis IA */
+    .news-analysis {
+        clear: both !important;
+        display: block !important;
+        margin-top: 12px !important;
+        margin-bottom: 12px !important;
+        padding: 12px 15px !important;
+        overflow-wrap: break-word !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Ocultar controles de sidebar */
+    [data-testid="stSidebar"][data-testid*="Collapse"],
+    [data-testid="stSidebar"] button[aria-label*="close" i],
+    [data-testid="stSidebar"] button[title*="close" i] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+    
+    /* Mejorar botón de limpiar caché y cerrar sesión en sidebar */
+    [data-testid="stSidebar"] button[key="btn_clear_cache"],
+    [data-testid="stSidebar"] button[key="btn_logout_sidebar"] {
+        background: rgba(231, 76, 60, 0.35) !important;
+        color: #ffffff !important;
+        border: 2px solid rgba(231, 76, 60, 0.7) !important;
+        font-weight: 600 !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+        padding: 14px 24px !important;
+        margin: 10px 0 !important;
+        width: 100% !important;
+        display: block !important;
+        clear: both !important;
+        font-size: 15px !important;
+        letter-spacing: 0.5px !important;
+        box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3) !important;
+    }
+    [data-testid="stSidebar"] button[key="btn_clear_cache"]:hover,
+    [data-testid="stSidebar"] button[key="btn_logout_sidebar"]:hover {
+        background: rgba(231, 76, 60, 0.55) !important;
+        border-color: rgba(231, 76, 60, 0.9) !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4) !important;
+    }
+    
+    /* Asegurar que el botón de cerrar sesión sea siempre visible */
+    [data-testid="stSidebar"] button[key="btn_logout_sidebar"] {
+        position: relative !important;
+        z-index: 100 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -524,13 +985,28 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Información del usuario
+    # Información del usuario - Mejorado
     if is_authenticated():
         user = get_current_user()
-        st.markdown(f"### 👤 {user['username']}")
+        st.markdown("### 👤 Usuario")
+        st.markdown(f"**{user['username']}**")
         st.markdown(f"📧 {user['email']}")
-        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary"):
-            logout()
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Botón de cerrar sesión - MEJORADO: Más visible y funcional
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary", key="btn_logout_sidebar"):
+            try:
+                logout()
+                st.session_state['use_cache'] = use_cache
+                st.session_state['use_smart_batch'] = use_smart_batch
+                st.session_state['user'] = None
+                st.success("✅ Sesión cerrada correctamente")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error al cerrar sesión: {str(e)}")
+        st.markdown("<br>", unsafe_allow_html=True)
+        
         st.markdown("---")
     else:
         st.info("🔒 No has iniciado sesión")
@@ -551,13 +1027,19 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
         else:
             st.warning("💾 Local")
     
-    # Estadísticas de caché
-    cache_mgr = CacheManager()
-    cache_stats = cache_mgr.get_stats()
+    # Estadísticas de caché - CORREGIDO: Asegurar que siempre esté definido
+    try:
+        cache_mgr = CacheManager()
+        cache_stats = cache_mgr.get_stats()
+        if cache_stats is None:
+            cache_stats = {'total_entries': 0, 'total_hits': 0, 'cache_hit_rate': '0%'}
+    except Exception as e:
+        cache_stats = {'total_entries': 0, 'total_hits': 0, 'cache_hit_rate': '0%'}
+        cache_mgr = None
     
     with col_cache:
-        if cache_stats['total_entries'] > 0:
-            st.info(f"🚀 {cache_stats['total_entries']} cached")
+        if cache_stats and cache_stats.get('total_entries', 0) > 0:
+            st.info(f"🚀 {cache_stats.get('total_entries', 0)} cached")
         else:
             st.info("📦 Caché vacío")
     
@@ -568,48 +1050,20 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     use_cache = st.checkbox("Usar caché inteligente", value=use_cache, help="Reduce consumo de API hasta 80%")
     use_smart_batch = st.checkbox("Batch inteligente", value=use_smart_batch, help="Procesa múltiples noticias por prompt")
     
-    if st.button("🗑️ Limpiar caché"):
-        deleted = cache_mgr.clear_old_entries(max_age_days=30)
-        st.success(f"✅ {deleted} entradas eliminadas")
+    # Botón limpiar caché con mejor visibilidad
+    if cache_mgr and st.button("🗑️ Limpiar caché", use_container_width=True, key="btn_clear_cache"):
+        try:
+            deleted = cache_mgr.clear_old_entries(max_age_days=30)
+            st.success(f"✅ {deleted} entradas eliminadas")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error al limpiar caché: {str(e)}")
     
     st.markdown("---")
     st.caption("Desarrollado con ❤️ por SAVA Team")
     st.caption("Optimizado para reducir costos de API")
     
     return use_cache, use_smart_batch
-    
-    # Estado de conexión
-    col_firebase, col_cache = st.columns(2)
-    with col_firebase:
-        if "firebase_credentials" in st.secrets:
-            st.success("☁️ Cloud")
-        else:
-            st.warning("💾 Local")
-    
-    # Estadísticas de caché
-    cache_mgr = CacheManager()
-    cache_stats = cache_mgr.get_stats()
-    
-    with col_cache:
-        if cache_stats['total_entries'] > 0:
-            st.info(f"🚀 {cache_stats['total_entries']} cached")
-        else:
-            st.info("📦 Caché vacío")
-    
-    st.markdown("---")
-    
-    # Opciones de configuración
-    st.markdown("### ⚙️ Configuración")
-    use_cache = st.checkbox("Usar caché inteligente", value=True, help="Reduce consumo de API hasta 80%")
-    use_smart_batch = st.checkbox("Batch inteligente", value=False, help="Procesa múltiples noticias por prompt")
-    
-    if st.button("🗑️ Limpiar caché"):
-        deleted = cache_mgr.clear_old_entries(max_age_days=30)
-        st.success(f"✅ {deleted} entradas eliminadas")
-    
-    st.markdown("---")
-    st.caption("Desarrollado con ❤️ por SAVA Team")
-    st.caption("Optimizado para reducir costos de API")
 
 def main():
     # Inicializar estado de sesión
@@ -651,10 +1105,30 @@ def main():
         st.session_state['use_cache'] = use_cache
         st.session_state['use_smart_batch'] = use_smart_batch
     
-    # Header profesional mejorado
+    # Header profesional mejorado - MEJORADO: Con columnas como referencia
+    col_h1, col_h2, col_h3 = st.columns([2, 1, 1])
     user = get_current_user()
-    st.title("📊 SAVA Agro-Insight PRO")
-    st.markdown(f"*Bienvenido, {user['username'] if user else 'Usuario'}* | Sistema Inteligente de Análisis de Riesgos Agroindustriales")
+    
+    with col_h1:
+        st.title("📊 SAVA Agro-Insight PRO")
+        st.markdown(f"*Bienvenido, {user['username'] if user else 'Usuario'}* | Sistema Inteligente de Análisis de Riesgos Agroindustriales")
+    
+    with col_h2:
+        st.metric("Versión", "2.1 Pro", delta="Optimizado")
+    
+    with col_h3:
+        if st.button("ℹ️ Ayuda"):
+            st.info("""
+            **Funcionalidades Principales:**
+            
+            - 📂 Análisis CSV con caché
+            - 🌐 Noticias en vivo
+            - 🗺️ Mapa geográfico
+            - 🤖 Chatbot inteligente
+            - 📈 Análisis de tendencias
+            - 🔔 Sistema de alertas
+            - 📄 Exportación PDF/Excel
+            """)
     
     st.markdown("---")
     
@@ -732,10 +1206,37 @@ def main():
                         batch_btn = False
                 
                 with col_btn3:
-                    cache_info = st.button("📊 Info de Caché", width='stretch')
+                    cache_info = st.button("📊 Info de Caché", use_container_width=True)
                 
                 if cache_info:
-                    st.json(cache_stats)
+                    # Obtener estadísticas de caché - CORREGIDO: Manejo seguro de errores
+                    try:
+                        cache_mgr_temp = CacheManager()
+                        cache_stats_temp = cache_mgr_temp.get_stats()
+                        if cache_stats_temp is None:
+                            cache_stats_temp = {'total_entries': 0, 'total_hits': 0, 'cache_hit_rate': '0%', 'distribution': {}}
+                    except Exception as e:
+                        cache_stats_temp = {'total_entries': 0, 'total_hits': 0, 'cache_hit_rate': '0%', 'distribution': {}}
+                        st.warning(f"⚠️ Error al obtener estadísticas: {str(e)}")
+                    
+                    # Mostrar estadísticas en formato legible (sin st.json que causa error)
+                    st.markdown("### 📊 Estadísticas de Caché")
+                    st.markdown("---")
+                    
+                    col_stat1, col_stat2 = st.columns(2)
+                    with col_stat1:
+                        st.metric("Total Entradas", cache_stats_temp.get('total_entries', 0))
+                        st.metric("Total Hits", cache_stats_temp.get('total_hits', 0))
+                    with col_stat2:
+                        hit_rate = cache_stats_temp.get('cache_hit_rate', '0%')
+                        st.metric("Hit Rate", hit_rate if isinstance(hit_rate, str) else f"{hit_rate}%")
+                    
+                    # Distribución de sentimientos
+                    if cache_stats_temp.get('distribution'):
+                        st.markdown("---")
+                        st.markdown("**📊 Distribución por Sentimiento:**")
+                        for sent, count in cache_stats_temp['distribution'].items():
+                            st.write(f"- **{sent}:** {count} noticias")
                 
                 # Análisis normal
                 if analyze_btn:
@@ -792,7 +1293,7 @@ def main():
             col3.metric("🔴 Negativas", neg_res, delta=f"{neg_res/total_res*100:.1f}%")
             col4.metric("⚪ Neutras", neu_res, delta=f"{neu_res/total_res*100:.1f}%")
             
-            # Resultados en tarjetas mejoradas - Más anchas y claras
+            # Resultados en expanders - MEJORADO: Más funcional y sin solapamiento (como referencia)
             st.markdown("<br>", unsafe_allow_html=True)
             
             for index, row in df_res.iterrows():
@@ -801,50 +1302,27 @@ def main():
                 cuerpo = str(row.get('cuerpo', ''))
                 explicacion = str(row.get('explicacion_ia', 'Análisis automático'))
                 fecha = str(row.get('fecha', 'N/A'))
+                id_original = str(row.get('id_original', 'N/A'))
                 
-                # Determinar clase CSS y badge según sentimiento
-                if sentimiento == "Positivo":
-                    card_class = "news-card-positive"
-                    badge_class = "sentiment-badge-positive"
-                    emoji = "🟢"
-                    label = "POSITIVO"
-                elif sentimiento == "Negativo":
-                    card_class = "news-card-negative"
-                    badge_class = "sentiment-badge-negative"
-                    emoji = "🔴"
-                    label = "NEGATIVO"
-                else:
-                    card_class = "news-card-neutral"
-                    badge_class = "sentiment-badge-neutral"
-                    emoji = "⚪"
-                    label = "NEUTRO"
+                # Determinar color según sentimiento
+                color_map = {"Positivo": "green", "Negativo": "red", "Neutro": "gray"}
+                color = color_map.get(sentimiento, "gray")
                 
-                # Crear tarjeta de noticia con HTML personalizado - Mejorada
-                # Escapar caracteres HTML especiales
-                titular_escaped = html_escape(titular)
-                cuerpo_escaped = html_escape(str(cuerpo))
-                explicacion_escaped = html_escape(explicacion)
-                
-                st.markdown(f"""
-                <div class="news-card {card_class}" style="width: 100%; margin: 15px 0;">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <span class="sentiment-badge {badge_class}">{emoji} {label}</span>
-                    </div>
-                    <div class="news-title" style="font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 12px; line-height: 1.4;">
-                        {titular_escaped}
-                    </div>
-                    <div class="news-body" style="font-size: 15px; color: #4a5568; line-height: 1.7; margin-bottom: 15px; max-height: none;">
-                        {cuerpo_escaped}
-                    </div>
-                    <div class="news-analysis" style="font-size: 14px; color: #2d3748; font-style: normal; padding: 12px; background: rgba(102, 126, 234, 0.08); border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 12px;">
-                        <strong>🤖 Análisis IA:</strong> {explicacion_escaped}
-                    </div>
-                    <div style="margin-top: 10px; font-size: 12px; color: #718096; display: flex; gap: 15px; align-items: center;">
-                        <span>📅 {fecha}</span>
-                        <span>🆔 {row.get('id_original', 'N/A')}</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                # Usar expander en lugar de tarjetas HTML complejas - Sin solapamiento
+                with st.expander(f":{color}[{sentimiento}] - {titular[:80]}{'...' if len(titular) > 80 else ''}", expanded=False):
+                    col_a, col_b = st.columns([3, 1])
+                    
+                    with col_a:
+                        st.markdown(f"**📰 Contenido:**")
+                        st.write(cuerpo[:500] + ('...' if len(cuerpo) > 500 else ''))
+                        st.markdown("---")
+                        st.markdown(f"**🤖 Análisis IA:**")
+                        st.write(explicacion)
+                    
+                    with col_b:
+                        st.caption(f"📅 **Fecha:**\n{fecha}")
+                        st.caption(f"🆔 **ID:**\n{id_original}")
+                        st.caption(f"📊 **Sentimiento:**\n{sentimiento}")
             
             # Botón de guardado
             if st.button("💾 Guardar en Firebase"):
@@ -882,22 +1360,32 @@ def main():
         if 'web_analysis' in st.session_state:
             df_web = st.session_state['web_analysis']
             
+            # MEJORADO: Usar expanders para noticias web - Sin solapamiento
             for index, row in df_web.iterrows():
-                color_map = {"Positivo": "#2ecc71", "Negativo": "#e74c3c", "Neutro": "#bdc3c7"}
+                color_map = {"Positivo": "green", "Negativo": "red", "Neutro": "gray"}
                 emoji_map = {"Positivo": "🟢", "Negativo": "🔴", "Neutro": "⚪"}
+                color = color_map.get(row['sentimiento_ia'], "gray")
+                emoji = emoji_map.get(row['sentimiento_ia'], "⚪")
+                titular_web = str(row.get('titular', 'Sin título'))
+                titular_short = titular_web[:80] + ('...' if len(titular_web) > 80 else '')
                 
-                st.markdown(f"""
-                <div style="background:white; padding:20px; border-radius:15px; margin:15px 0; 
-                            border-left:5px solid {color_map[row['sentimiento_ia']]}; 
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <h3>{emoji_map[row['sentimiento_ia']]} {row['titular']}</h3>
-                    <p>{row['cuerpo'][:300]}...</p>
-                    <p><b>🤖 Análisis:</b> {row['explicacion_ia']}</p>
-                    <hr>
-                    <small>📰 {row['fuente']} | 📅 {row['fecha']} | 
-                    <a href="{row['url']}" target="_blank">🔗 Leer original</a></small>
-                </div>
-                """, unsafe_allow_html=True)
+                with st.expander(f":{color}[{row['sentimiento_ia']}] {emoji} {titular_short}", expanded=False):
+                    col_web1, col_web2 = st.columns([3, 1])
+                    
+                    with col_web1:
+                        st.markdown(f"**📰 Contenido:**")
+                        cuerpo_web = str(row.get('cuerpo', ''))
+                        st.write(cuerpo_web[:500] + ('...' if len(cuerpo_web) > 500 else ''))
+                        st.markdown("---")
+                        st.markdown(f"**🤖 Análisis IA:**")
+                        st.write(str(row.get('explicacion_ia', 'Sin análisis')))
+                    
+                    with col_web2:
+                        st.caption(f"📰 **Fuente:**\n{row.get('fuente', 'N/A')}")
+                        st.caption(f"📅 **Fecha:**\n{row.get('fecha', 'N/A')}")
+                        url_web = row.get('url', '#')
+                        if url_web and url_web != '#':
+                            st.markdown(f"[🔗 Leer original]({url_web})")
             
             if st.button("💾 Guardar Noticias Web"):
                 success, msg = save_analysis_results(df_web, collection_name="noticias_web")
@@ -1020,26 +1508,36 @@ def main():
                     with st.spinner("🤖 Pensando..."):
                         response = chatbot.chat(user_input)
                         
-                        # Mensaje del usuario
+                        # Mensaje del usuario - MEJORADO: Sin solapamiento
+                        user_input_escaped = html_escape(str(user_input))
                         st.markdown(f"""
-                        <div class="chat-message user-message">
-                            <b>👤 Tú:</b> {user_input}
+                        <div class="chat-message user-message" style="clear: both; display: block; margin: 20px 0; padding: 20px; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.7;">
+                            <strong style="display: block; margin-bottom: 10px;">👤 Tú:</strong>
+                            <div style="display: block; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.7;">{user_input_escaped}</div>
                         </div>
                         """, unsafe_allow_html=True)
                         
-                        # Respuesta del bot
+                        # Respuesta del bot - MEJORADO: Sin solapamiento
+                        response_text = html_escape(str(response.get('response', 'Sin respuesta')))
                         st.markdown(f"""
-                        <div class="chat-message bot-message">
-                            <b>🤖 Asistente:</b><br>{response['response']}
+                        <div class="chat-message bot-message" style="clear: both; display: block; margin: 20px 0; padding: 20px; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.7;">
+                            <strong style="display: block; margin-bottom: 10px;">🤖 Asistente:</strong>
+                            <div style="display: block; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.7; margin-top: 10px;">{response_text}</div>
                         </div>
                         """, unsafe_allow_html=True)
                         
-                        # Noticias relevantes
-                        if response['relevant_news']:
+                        # Noticias relevantes - MEJORADO: Sin solapamiento, más limpio
+                        if response.get('relevant_news'):
                             with st.expander(f"📰 {len(response['relevant_news'])} Noticias Relevantes"):
-                                for news in response['relevant_news']:
-                                    st.markdown(f"**{news['titular']}** ({news['sentimiento']})")
-                                    st.caption(f"Similitud: {news['similarity']:.2%}")
+                                for idx, news in enumerate(response['relevant_news']):
+                                    titular_news = str(news.get('titular', 'Sin título'))
+                                    sentimiento_news = str(news.get('sentimiento', 'N/A'))
+                                    similarity = news.get('similarity', 0)
+                                    
+                                    st.markdown(f"**{titular_news}**")
+                                    st.caption(f"Sentimiento: {sentimiento_news} | Similitud: {similarity:.2%}")
+                                    if idx < len(response['relevant_news']) - 1:
+                                        st.markdown("---")
             else:
                 st.warning("⬅️ Primero carga noticias para interactuar con el chatbot")
     
@@ -1176,15 +1674,33 @@ def main():
                         if themes:
                             for i, theme in enumerate(themes):
                                 cluster_data = df_clustered[df_clustered['cluster'] == i]
-                                with st.expander(f"📁 **Cluster {i+1}**: {theme} ({len(cluster_data)} noticias)", expanded=(i==0)):
-                                    st.caption(f"**Tema principal:** {theme}")
+                                # Limpiar el tema
+                                theme_clean = str(theme).strip()
+                                theme_display = theme_clean[:60] + ('...' if len(theme_clean) > 60 else '')
+                                
+                                # MEJORADO: Usar expander para clusters - Sin solapamiento
+                                with st.expander(f"📁 **Cluster {i+1}**: {theme_display} ({len(cluster_data)} noticias)", expanded=(i==0)):
+                                    st.caption(f"**Tema principal:** {theme_clean}")
                                     st.caption(f"**Noticias en este cluster:** {len(cluster_data)}")
                                     
-                                    # Mostrar distribución de sentimientos en el cluster
+                                    # Mostrar distribución de sentimientos
                                     sent_dist = cluster_data['sentimiento_ia'].value_counts()
-                                    st.write("Distribución de sentimientos:")
+                                    st.markdown("**📊 Distribución de Sentimientos:**")
                                     for sent, count in sent_dist.items():
-                                        st.write(f"- {sent}: {count} ({count/len(cluster_data)*100:.1f}%)")
+                                        percentage = (count/len(cluster_data)*100) if len(cluster_data) > 0 else 0
+                                        st.write(f"- **{sent}:** {count} ({percentage:.1f}%)")
+                                    
+                                    st.markdown("---")
+                                    
+                                    # Mostrar algunas noticias del cluster
+                                    st.markdown("**📰 Muestra de Noticias:**")
+                                    sample_news = cluster_data.head(5)
+                                    for idx, news_row in sample_news.iterrows():
+                                        sent = news_row.get('sentimiento_ia', 'Neutro')
+                                        emoji = "🟢" if sent == "Positivo" else "🔴" if sent == "Negativo" else "⚪"
+                                        titular_full = str(news_row.get('titular', ''))
+                                        titular_short = titular_full[:80] + ('...' if len(titular_full) > 80 else '')
+                                        st.caption(f"{emoji} {titular_short}")
                         else:
                             st.warning("No se pudieron generar temas. Intenta con más noticias.")
                     except Exception as e:
@@ -1279,30 +1795,39 @@ def main():
                             color = "#3498db"
                             border = "5px solid #3498db"
                         
-                        with st.container():
+                        # MEJORADO: Usar expander para evitar solapamiento y mejorar legibilidad
+                        alert_title_escaped = html_escape(str(alert.get('title', 'Alerta')))
+                        alert_message_escaped = html_escape(str(alert.get('message', '')))
+                        alert_recommendation_escaped = html_escape(str(alert.get('recommendation', '')))
+                        
+                        with st.expander(f"{icon} **{alert_title_escaped}**", expanded=(i == 1 and alert['severity'] == 'critical')):
                             st.markdown(f"""
-                            <div style="background-color: white; padding: 20px; border-radius: 10px; 
-                                        border-left: {border}; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                <h3 style="color: {color}; margin-top: 0;">{icon} {alert['title']}</h3>
-                                <p style="font-size: 1.1em; margin-bottom: 10px;"><b>Descripción:</b> {alert['message']}</p>
-                                <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
-                                    <p style="margin: 0;"><b>💡 Recomendación:</b> {alert['recommendation']}</p>
+                            <div style="background-color: white; padding: 15px; border-radius: 8px; 
+                                        border-left: {border}; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.08);">
+                                <p style="font-size: 1.05em; margin-bottom: 12px; line-height: 1.6; word-wrap: break-word;">
+                                    <b>Descripción:</b> {alert_message_escaped}
+                                </p>
+                                <div style="background-color: #f8f9fa; padding: 12px; border-radius: 5px; margin: 10px 0; line-height: 1.6;">
+                                    <p style="margin: 0; word-wrap: break-word;"><b>💡 Recomendación:</b> {alert_recommendation_escaped}</p>
                                 </div>
-                                <small style="color: #6c757d;">🕒 Generada: {alert.get('timestamp', 'N/A')}</small>
+                                <small style="color: #6c757d; display: block; margin-top: 10px;">🕒 Generada: {alert.get('timestamp', 'N/A')}</small>
                             </div>
                             """, unsafe_allow_html=True)
-                        
-                        # Mostrar detalles adicionales si existen
-                        if 'details' in alert and alert['details']:
-                            with st.expander(f"📋 Ver detalles de {alert['title']}"):
+                            
+                            # Mostrar detalles adicionales si existen
+                            if 'details' in alert and alert['details']:
+                                st.markdown("---")
+                                st.markdown("**📋 Detalles Adicionales:**")
                                 if isinstance(alert['details'], dict):
                                     for key, value in alert['details'].items():
                                         if isinstance(value, list):
                                             st.write(f"**{key}:**")
                                             for item in value[:5]:  # Mostrar máximo 5
-                                                st.caption(f"  • {item}")
+                                                st.caption(f"  • {str(item)}")
                                         else:
-                                            st.write(f"**{key}:** {value}")
+                                            st.write(f"**{key}:** {str(value)}")
+                                else:
+                                    st.write(str(alert['details']))
                 else:
                     st.success("""
                     ✅ **¡Excelente! No se detectaron alertas críticas.**
@@ -1509,3 +2034,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
