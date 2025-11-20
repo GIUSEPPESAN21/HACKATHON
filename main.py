@@ -8,6 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from streamlit_folium import st_folium
 import altair as alt
+from datetime import datetime
 
 # Imports de módulos propios
 from src.utils import load_and_validate_csv
@@ -433,17 +434,49 @@ def main():
             with col_map_action:
                 if st.button("🔄 Generar Mapa", type="primary"):
                     with st.spinner("🗺️ Generando mapa..."):
-                        if "Calor" in map_type:
-                            news_map = geo_mapper.create_heatmap(data_source)
-                        else:
-                            news_map = geo_mapper.create_news_map(data_source)
-                        
-                        st.session_state['current_map'] = news_map
+                        try:
+                            if "Calor" in map_type:
+                                news_map = geo_mapper.create_heatmap(data_source)
+                                # Verificar si hay noticias negativas
+                                negativas = len(data_source[data_source['sentimiento_ia'] == 'Negativo'])
+                                if negativas == 0:
+                                    st.warning("⚠️ No hay noticias negativas para mostrar en el mapa de calor")
+                                else:
+                                    st.success(f"✅ Mapa de calor generado con {negativas} noticias negativas")
+                            else:
+                                news_map = geo_mapper.create_news_map(data_source)
+                                st.success("✅ Mapa interactivo generado correctamente")
+                            
+                            st.session_state['current_map'] = news_map
+                        except Exception as e:
+                            st.error(f"❌ Error generando mapa: {str(e)}")
+                            st.caption("💡 Verifica que las noticias tengan ubicaciones detectables")
             
             if 'current_map' in st.session_state:
-                # CORREGIDO: folium_static deprecado, usar st_folium
-                from streamlit_folium import st_folium
-                st_folium(st.session_state['current_map'], width=1200, height=600)
+                # CORREGIDO: Solución robusta para que el mapa no desaparezca
+                try:
+                    # Opción 1: st_folium (preferido)
+                    map_data = st_folium(
+                        st.session_state['current_map'], 
+                        width=1200, 
+                        height=600,
+                        returned_objects=[],
+                        key=f"map_{hash(str(st.session_state.get('current_map', '')))}"
+                    )
+                    
+                    # Si el mapa se renderizó correctamente, mostrar info
+                    if map_data:
+                        st.caption("🗺️ Mapa interactivo - Usa los controles para zoom y navegación")
+                except Exception as e:
+                    # Opción 2: Fallback con HTML directo
+                    try:
+                        st.warning("⚠️ Usando modo de visualización alternativo")
+                        map_html = st.session_state['current_map']._repr_html_()
+                        st.components.v1.html(map_html, width=1200, height=600, scrolling=False)
+                        st.caption("💡 Si el mapa no se ve, recarga la página")
+                    except Exception as e2:
+                        st.error(f"❌ Error mostrando mapa: {str(e2)}")
+                        st.caption("💡 Intenta generar el mapa nuevamente")
         else:
             st.info("⬅️ Realiza primero un análisis para visualizar el mapa")
     
@@ -561,82 +594,243 @@ def main():
             
             st.markdown("---")
             
-            # Palabras clave
-            col_kw1, col_kw2 = st.columns(2)
+            # MEJORADO: Análisis de tendencias más completo
+            st.markdown("### 📊 Análisis Detallado")
             
-            with col_kw1:
-                st.markdown("### 🔴 Palabras Clave Negativas")
-                keywords_neg = trend_analyzer.extract_keywords('Negativo', top_n=10)
-                keywords_neg_df = pd.DataFrame(keywords_neg, columns=['Palabra', 'Frecuencia'])
-                st.bar_chart(keywords_neg_df.set_index('Palabra'))
-            
-            with col_kw2:
-                st.markdown("### 🟢 Palabras Clave Positivas")
-                keywords_pos = trend_analyzer.extract_keywords('Positivo', top_n=10)
-                keywords_pos_df = pd.DataFrame(keywords_pos, columns=['Palabra', 'Frecuencia'])
-                st.bar_chart(keywords_pos_df.set_index('Palabra'))
+            # Gráfico de evolución temporal si hay fechas
+            if 'fecha' in data_source.columns:
+                try:
+                    data_source['fecha_parsed'] = pd.to_datetime(data_source['fecha'], errors='coerce')
+                    df_with_dates = data_source[data_source['fecha_parsed'].notna()].copy()
+                    
+                    if len(df_with_dates) > 0:
+                        df_with_dates['fecha_only'] = df_with_dates['fecha_parsed'].dt.date
+                        trend_over_time = df_with_dates.groupby(['fecha_only', 'sentimiento_ia']).size().unstack(fill_value=0)
+                        
+                        if len(trend_over_time) > 0:
+                            st.markdown("#### 📅 Evolución Temporal del Sentimiento")
+                            fig_trend = px.line(
+                                trend_over_time.reset_index(),
+                                x='fecha_only',
+                                y=['Positivo', 'Negativo', 'Neutro'],
+                                title="Tendencia del Sentimiento en el Tiempo",
+                                labels={'fecha_only': 'Fecha', 'value': 'Cantidad de Noticias'},
+                                color_discrete_map={'Positivo': '#2ecc71', 'Negativo': '#e74c3c', 'Neutro': '#95a5a6'}
+                            )
+                            st.plotly_chart(fig_trend, width='stretch')
+                except Exception as e:
+                    st.caption(f"⚠️ No se pudo generar gráfico temporal: {e}")
             
             st.markdown("---")
             
-            # Predicción de tendencia
+            # Palabras clave mejoradas
+            col_kw1, col_kw2 = st.columns(2)
+            
+            with col_kw1:
+                st.markdown("### 🔴 Palabras Clave Negativas (Top 10)")
+                keywords_neg = trend_analyzer.extract_keywords('Negativo', top_n=10)
+                if keywords_neg:
+                    keywords_neg_df = pd.DataFrame(keywords_neg, columns=['Palabra', 'Frecuencia'])
+                    fig_neg = px.bar(
+                        keywords_neg_df,
+                        x='Frecuencia',
+                        y='Palabra',
+                        orientation='h',
+                        color='Frecuencia',
+                        color_continuous_scale='Reds',
+                        title="Palabras más frecuentes en noticias negativas"
+                    )
+                    fig_neg.update_layout(height=400, showlegend=False)
+                    st.plotly_chart(fig_neg, width='stretch')
+                else:
+                    st.info("No hay palabras clave negativas detectadas")
+            
+            with col_kw2:
+                st.markdown("### 🟢 Palabras Clave Positivas (Top 10)")
+                keywords_pos = trend_analyzer.extract_keywords('Positivo', top_n=10)
+                if keywords_pos:
+                    keywords_pos_df = pd.DataFrame(keywords_pos, columns=['Palabra', 'Frecuencia'])
+                    fig_pos = px.bar(
+                        keywords_pos_df,
+                        x='Frecuencia',
+                        y='Palabra',
+                        orientation='h',
+                        color='Frecuencia',
+                        color_continuous_scale='Greens',
+                        title="Palabras más frecuentes en noticias positivas"
+                    )
+                    fig_pos.update_layout(height=400, showlegend=False)
+                    st.plotly_chart(fig_pos, width='stretch')
+                else:
+                    st.info("No hay palabras clave positivas detectadas")
+            
+            st.markdown("---")
+            
+            # Predicción de tendencia mejorada
             st.markdown("### 🔮 Predicción de Tendencia")
             prediction = trend_analyzer.predict_sentiment_trend()
-            st.info(prediction)
+            if "No hay" not in prediction and "suficientes" not in prediction:
+                st.success(prediction)
+            else:
+                st.info(prediction)
             
-            # Clustering temático
-            st.markdown("### 🗂️ Agrupación Temática")
-            if st.button("Generar Clusters"):
-                with st.spinner("Agrupando noticias..."):
+            # Clustering temático mejorado
+            st.markdown("### 🗂️ Agrupación Temática de Noticias")
+            st.caption("Agrupa noticias similares por contenido para identificar temas principales")
+            if st.button("🔍 Generar Clusters Temáticos", type="primary"):
+                with st.spinner("Agrupando noticias por similitud temática..."):
                     try:
                         df_clustered, themes = trend_analyzer.cluster_news(n_clusters=3)
                         
-                        for i, theme in enumerate(themes):
-                            st.markdown(f"**Cluster {i+1}:** {theme}")
-                            cluster_data = df_clustered[df_clustered['cluster'] == i]
-                            st.caption(f"{len(cluster_data)} noticias")
-                    except:
-                        st.warning("No hay suficientes datos para clustering")
+                        if themes:
+                            for i, theme in enumerate(themes):
+                                cluster_data = df_clustered[df_clustered['cluster'] == i]
+                                with st.expander(f"📁 **Cluster {i+1}**: {theme} ({len(cluster_data)} noticias)", expanded=(i==0)):
+                                    st.caption(f"**Tema principal:** {theme}")
+                                    st.caption(f"**Noticias en este cluster:** {len(cluster_data)}")
+                                    
+                                    # Mostrar distribución de sentimientos en el cluster
+                                    sent_dist = cluster_data['sentimiento_ia'].value_counts()
+                                    st.write("Distribución de sentimientos:")
+                                    for sent, count in sent_dist.items():
+                                        st.write(f"- {sent}: {count} ({count/len(cluster_data)*100:.1f}%)")
+                        else:
+                            st.warning("No se pudieron generar temas. Intenta con más noticias.")
+                    except Exception as e:
+                        st.warning(f"No hay suficientes datos para clustering: {str(e)}")
+                        st.caption("💡 Se necesitan al menos 5 noticias para generar clusters")
         else:
             st.info("⬅️ Primero realiza un análisis")
     
-    # TAB 6: ALERTAS
+    # TAB 6: ALERTAS - MEJORADO
     with tabs[5]:
         st.header("🔔 Sistema de Alertas Inteligentes")
+        st.markdown("""
+        **¿Qué hace este sistema?**
+        
+        El sistema de alertas analiza automáticamente tus noticias y detecta:
+        - 🚨 **Alertas Críticas**: Situaciones que requieren atención inmediata
+        - ⚠️ **Alertas Altas**: Problemas importantes que deben monitorearse
+        - ⚡ **Alertas Medias**: Situaciones que requieren seguimiento
+        
+        **Tipos de alertas detectadas:**
+        - Alta proporción de noticias negativas (>40%)
+        - Palabras clave críticas (sequía, plaga, crisis, pérdida, conflicto, paro)
+        - Baja proporción de noticias positivas (<15%)
+        - Concentración geográfica de riesgos en zonas específicas
+        """)
+        
+        st.markdown("---")
         
         data_source = st.session_state.get('last_analysis')
         if data_source is None:
             data_source = st.session_state.get('web_analysis')
         
         if data_source is not None:
-            if st.button("🔍 Generar Alertas", type="primary"):
-                with st.spinner("Analizando riesgos..."):
-                    alerts = alert_system.analyze_and_generate_alerts(data_source)
-                    st.session_state['alerts'] = alerts
+            col_info, col_btn = st.columns([3, 1])
+            
+            with col_info:
+                total = len(data_source)
+                negativas = len(data_source[data_source['sentimiento_ia'] == 'Negativo'])
+                positivas = len(data_source[data_source['sentimiento_ia'] == 'Positivo'])
+                st.caption(f"📊 Analizando {total} noticias ({negativas} negativas, {positivas} positivas)")
+            
+            with col_btn:
+                if st.button("🔍 Generar Alertas", type="primary", width='stretch'):
+                    with st.spinner("🔍 Analizando riesgos y generando alertas..."):
+                        alerts = alert_system.analyze_and_generate_alerts(data_source)
+                        st.session_state['alerts'] = alerts
+                        st.success(f"✅ Análisis completado: {len(alerts)} alertas generadas")
             
             if 'alerts' in st.session_state:
                 alerts = st.session_state['alerts']
                 
-                # Resumen
-                st.markdown(alert_system.get_alert_summary())
-                st.markdown("---")
+                # MEJORADO: Resumen visual mejorado
+                st.markdown("### 📊 Resumen de Alertas")
                 
-                # Mostrar alertas
                 if alerts:
-                    for alert in alerts:
-                        severity_class = f"alert-{alert['severity']}"
+                    critical = sum(1 for a in alerts if a['severity'] == 'critical')
+                    high = sum(1 for a in alerts if a['severity'] == 'high')
+                    medium = sum(1 for a in alerts if a['severity'] == 'medium')
+                    
+                    col_crit, col_high, col_med, col_total = st.columns(4)
+                    
+                    with col_crit:
+                        st.metric("🚨 Críticas", critical, delta="Atención inmediata" if critical > 0 else None, delta_color="inverse")
+                    with col_high:
+                        st.metric("⚠️ Altas", high, delta="Monitorear" if high > 0 else None)
+                    with col_med:
+                        st.metric("⚡ Medias", medium, delta="Seguimiento" if medium > 0 else None)
+                    with col_total:
+                        st.metric("📋 Total", len(alerts))
+                    
+                    st.markdown("---")
+                    
+                    # MEJORADO: Mostrar alertas de forma más clara
+                    st.markdown("### 🔔 Alertas Detectadas")
+                    
+                    # Ordenar por severidad
+                    severity_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+                    alerts_sorted = sorted(alerts, key=lambda x: severity_order.get(x['severity'], 3))
+                    
+                    for i, alert in enumerate(alerts_sorted, 1):
+                        # Iconos según severidad
+                        if alert['severity'] == 'critical':
+                            icon = "🚨"
+                            color = "#e74c3c"
+                            border = "5px solid #e74c3c"
+                        elif alert['severity'] == 'high':
+                            icon = "⚠️"
+                            color = "#f39c12"
+                            border = "5px solid #f39c12"
+                        else:
+                            icon = "⚡"
+                            color = "#3498db"
+                            border = "5px solid #3498db"
                         
-                        st.markdown(f"""
-                        <div class="{severity_class}">
-                            <h4>{alert['title']}</h4>
-                            <p>{alert['message']}</p>
-                            <p><b>💡 Recomendación:</b> {alert['recommendation']}</p>
-                            <small>🕒 {alert['timestamp']}</small>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        with st.container():
+                            st.markdown(f"""
+                            <div style="background-color: white; padding: 20px; border-radius: 10px; 
+                                        border-left: {border}; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <h3 style="color: {color}; margin-top: 0;">{icon} {alert['title']}</h3>
+                                <p style="font-size: 1.1em; margin-bottom: 10px;"><b>Descripción:</b> {alert['message']}</p>
+                                <div style="background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                                    <p style="margin: 0;"><b>💡 Recomendación:</b> {alert['recommendation']}</p>
+                                </div>
+                                <small style="color: #6c757d;">🕒 Generada: {alert.get('timestamp', 'N/A')}</small>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        # Mostrar detalles adicionales si existen
+                        if 'details' in alert and alert['details']:
+                            with st.expander(f"📋 Ver detalles de {alert['title']}"):
+                                if isinstance(alert['details'], dict):
+                                    for key, value in alert['details'].items():
+                                        if isinstance(value, list):
+                                            st.write(f"**{key}:**")
+                                            for item in value[:5]:  # Mostrar máximo 5
+                                                st.caption(f"  • {item}")
+                                        else:
+                                            st.write(f"**{key}:** {value}")
                 else:
-                    st.success("✅ No se detectaron alertas críticas")
+                    st.success("""
+                    ✅ **¡Excelente! No se detectaron alertas críticas.**
+                    
+                    Esto significa que:
+                    - La proporción de noticias negativas está en niveles normales
+                    - No se detectaron palabras clave críticas peligrosas
+                    - El sector muestra un panorama estable
+                    - No hay concentraciones anormales de riesgos
+                    """)
         else:
-            st.info("⬅️ Primero realiza un análisis")
+            st.info("""
+            ⬅️ **Primero realiza un análisis**
+            
+            Para generar alertas:
+            1. Ve a la pestaña "📂 Análisis CSV" o "🌐 Noticias en Vivo"
+            2. Analiza tus noticias
+            3. Regresa aquí y haz click en "🔍 Generar Alertas"
+            """)
     
     # TAB 7: DASHBOARD
     with tabs[6]:
@@ -695,70 +889,105 @@ def main():
         else:
             st.info("⬅️ Primero realiza un análisis")
     
-    # TAB 8: EXPORTAR
+    # TAB 8: EXPORTAR - MEJORADO
     with tabs[7]:
         st.header("📄 Exportación de Reportes")
+        st.markdown("""
+        **Exporta tus análisis en diferentes formatos:**
+        - 📕 **PDF**: Reporte ejecutivo profesional con gráficos
+        - 📗 **Excel**: Múltiples hojas con datos, estadísticas y gráficos
+        - 📄 **CSV**: Datos simples para análisis externo
+        """)
+        
+        st.markdown("---")
         
         data_source = st.session_state.get('last_analysis')
         if data_source is None:
             data_source = st.session_state.get('web_analysis')
         
         if data_source is not None:
-            st.info(f"📊 {len(data_source)} noticias listas para exportar")
+            # CORREGIDO: Asegurar que datetime esté disponible
+            try:
+                from datetime import datetime as dt
+                fecha_str = dt.now().strftime('%Y%m%d')
+            except:
+                import time
+                fecha_str = time.strftime('%Y%m%d')
+            
+            st.info(f"📊 **{len(data_source)} noticias** listas para exportar")
             
             col_pdf, col_excel = st.columns(2)
             
             with col_pdf:
-                st.markdown("### 📕 Reporte PDF")
-                st.write("Genera un reporte profesional en PDF con gráficos y análisis")
+                st.markdown("### 📕 Reporte PDF Profesional")
+                st.caption("Incluye: Resumen ejecutivo, estadísticas, gráficos y análisis detallado")
                 
-                if st.button("📄 Generar PDF", type="primary", width='stretch'):
-                    with st.spinner("Generando PDF..."):
+                if st.button("📄 Generar PDF", type="primary", width='stretch', key="btn_pdf"):
+                    with st.spinner("📄 Generando reporte PDF profesional..."):
                         try:
                             pdf_buffer = exporter.export_to_pdf(data_source, include_stats=True)
                             st.download_button(
                                 label="⬇️ Descargar PDF",
                                 data=pdf_buffer,
-                                file_name=f"reporte_sava_{datetime.now().strftime('%Y%m%d')}.pdf",
+                                file_name=f"reporte_sava_{fecha_str}.pdf",
                                 mime="application/pdf",
-                                width='stretch'
+                                width='stretch',
+                                key="dl_pdf"
                             )
-                            st.success("✅ PDF generado!")
+                            st.success("✅ PDF generado exitosamente!")
                         except Exception as e:
-                            st.error(f"Error: {e}")
+                            st.error(f"❌ Error generando PDF: {str(e)}")
+                            st.caption("💡 Verifica que reportlab esté instalado: pip install reportlab")
             
             with col_excel:
-                st.markdown("### 📗 Reporte Excel")
-                st.write("Exporta a Excel con múltiples hojas, gráficos y formato profesional")
+                st.markdown("### 📗 Reporte Excel Avanzado")
+                st.caption("Incluye: Datos completos, estadísticas, gráficos interactivos y palabras clave")
                 
-                if st.button("📊 Generar Excel", type="primary", width='stretch'):
-                    with st.spinner("Generando Excel..."):
+                if st.button("📊 Generar Excel", type="primary", width='stretch', key="btn_excel"):
+                    with st.spinner("📊 Generando reporte Excel avanzado..."):
                         try:
                             excel_buffer = exporter.export_to_excel(data_source, include_charts=True)
                             st.download_button(
                                 label="⬇️ Descargar Excel",
                                 data=excel_buffer,
-                                file_name=f"reporte_sava_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                                file_name=f"reporte_sava_{fecha_str}.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                                width='stretch'
+                                width='stretch',
+                                key="dl_excel"
                             )
-                            st.success("✅ Excel generado!")
+                            st.success("✅ Excel generado exitosamente!")
                         except Exception as e:
-                            st.error(f"Error: {e}")
+                            st.error(f"❌ Error generando Excel: {str(e)}")
+                            st.caption("💡 Verifica que openpyxl y xlsxwriter estén instalados")
             
             st.markdown("---")
             
-            # Exportación CSV simple
-            st.markdown("### 📄 Exportación CSV")
-            csv = data_source.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="⬇️ Descargar CSV",
-                data=csv,
-                file_name=f"analisis_sava_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv"
-            )
+            # Exportación CSV simple - CORREGIDO
+            st.markdown("### 📄 Exportación CSV Simple")
+            st.caption("Formato simple para análisis en Excel, Python, R u otras herramientas")
+            
+            try:
+                csv = data_source.to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="⬇️ Descargar CSV",
+                    data=csv,
+                    file_name=f"analisis_sava_{fecha_str}.csv",
+                    mime="text/csv",
+                    width='stretch',
+                    key="dl_csv"
+                )
+                st.caption(f"✅ CSV listo: {len(data_source)} filas, {len(data_source.columns)} columnas")
+            except Exception as e:
+                st.error(f"❌ Error generando CSV: {str(e)}")
         else:
-            st.info("⬅️ Primero realiza un análisis")
+            st.info("""
+            ⬅️ **Primero realiza un análisis**
+            
+            Para exportar reportes:
+            1. Ve a "📂 Análisis CSV" o "🌐 Noticias en Vivo"
+            2. Analiza tus noticias
+            3. Regresa aquí y elige el formato de exportación
+            """)
     
     # TAB 9: HISTORIAL
     with tabs[8]:
