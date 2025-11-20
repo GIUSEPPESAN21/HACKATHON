@@ -155,7 +155,7 @@ st.markdown("""
         display: none !important;
         visibility: hidden !important;
     }
-    /* Ocultar keyboard_double_arrow_right y todos los iconos de flecha */
+    /* Ocultar keyboard_double_arrow_right y todos los iconos de flecha - MÁS AGRESIVO */
     .keyboard_double_arrow_right,
     .keyboard_arrow_right,
     .keyboard_arrow_down,
@@ -163,12 +163,22 @@ st.markdown("""
     [data-testid*="arrow"],
     svg[data-testid*="arrow"],
     svg[class*="arrow"],
-    .material-icons[class*="arrow"] {
+    .material-icons[class*="arrow"],
+    /* Ocultar cualquier elemento que contenga texto "keyboard" */
+    span[class*="keyboard"],
+    div[class*="keyboard"],
+    p[class*="keyboard"],
+    label[class*="keyboard"] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
         width: 0 !important;
         height: 0 !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
     }
     /* Ocultar controles de expansión del sidebar */
     section[data-testid="stSidebar"] > div:first-child button {
@@ -414,27 +424,76 @@ st.markdown("""
         height: 0 !important;
         padding: 0 !important;
         margin: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+        width: 0 !important;
     }
     
-    /* Ocultar específicamente el icono keyboard_arrow_right */
+    /* Ocultar específicamente el icono keyboard_arrow_right y cualquier texto relacionado */
     .streamlit-expanderHeader svg,
     .streamlit-expanderHeader [data-testid*="arrow"],
     .streamlit-expanderHeader .keyboard_arrow_right,
+    .streamlit-expanderHeader .keyboard_arrow_down,
+    .streamlit-expanderHeader .keyboard_arrow_up,
     svg[data-testid*="arrow"],
     .keyboard_arrow_right,
     .keyboard_arrow_down,
-    .keyboard_arrow_up {
+    .keyboard_arrow_up,
+    /* Ocultar cualquier texto que contenga "keyboard" */
+    *:contains("keyboard_arrow_right"),
+    *:contains("keyboard_arrow_down"),
+    *:contains("keyboard_arrow_up"),
+    *:contains("keyboard") {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
         width: 0 !important;
         height: 0 !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
     }
     
-    /* Ocultar cualquier texto o icono dentro del expander header */
-    .streamlit-expanderHeader * {
+    /* Ocultar cualquier texto o icono dentro del expander header - MÁS AGRESIVO */
+    .streamlit-expanderHeader *,
+    .streamlit-expanderHeader p,
+    .streamlit-expanderHeader span,
+    .streamlit-expanderHeader div,
+    .streamlit-expanderHeader label {
         display: none !important;
         visibility: hidden !important;
+        opacity: 0 !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
+    }
+    
+    /* Ocultar específicamente texto que contenga "keyboard" usando selectores de atributo */
+    [class*="keyboard"],
+    [id*="keyboard"],
+    [data-testid*="keyboard"],
+    span:contains("keyboard"),
+    div:contains("keyboard"),
+    p:contains("keyboard"),
+    label:contains("keyboard") {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        font-size: 0 !important;
+        height: 0 !important;
+        width: 0 !important;
+        overflow: hidden !important;
+        position: absolute !important;
+        left: -9999px !important;
     }
     
     /* Asegurar que el contenido del expander tenga espaciado adecuado */
@@ -557,6 +616,54 @@ st.markdown("""
         opacity: 0 !important;
     }
     </style>
+    
+    <script>
+    // Ocultar dinámicamente cualquier texto que contenga "keyboard"
+    function hideKeyboardText() {
+        // Buscar todos los elementos de texto
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(function(element) {
+            // Verificar si el elemento contiene texto "keyboard"
+            if (element.children.length === 0 && element.textContent) {
+                const text = element.textContent.trim();
+                if (text.includes('keyboard_arrow') || 
+                    text === 'keyboard_arrow_right' || 
+                    text === 'keyboard_arrow_down' || 
+                    text === 'keyboard_arrow_up' ||
+                    text.includes('keyboard')) {
+                    element.style.display = 'none';
+                    element.style.visibility = 'hidden';
+                    element.style.height = '0';
+                    element.style.width = '0';
+                    element.style.overflow = 'hidden';
+                    element.style.opacity = '0';
+                    element.style.position = 'absolute';
+                    element.style.left = '-9999px';
+                }
+            }
+        });
+    }
+    
+    // Ejecutar al cargar la página
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', hideKeyboardText);
+    } else {
+        hideKeyboardText();
+    }
+    
+    // Ejecutar después de cada actualización de Streamlit
+    setTimeout(hideKeyboardText, 100);
+    setTimeout(hideKeyboardText, 500);
+    setTimeout(hideKeyboardText, 1000);
+    
+    // Observar cambios en el DOM
+    const observer = new MutationObserver(hideKeyboardText);
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+    </script>
 """, unsafe_allow_html=True)
 
 # Funciones de autenticación
@@ -817,9 +924,9 @@ def main():
             else:
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
-                # Vista previa mejorada - Sin título visible para evitar solapamiento
-                with st.expander("", expanded=False):
-                    st.markdown("**👁️ Vista Previa de Datos**")
+                # Vista previa mejorada - Usando checkbox para mostrar/ocultar sin expander
+                show_preview = st.checkbox("👁️ Mostrar Vista Previa de Datos", value=False)
+                if show_preview:
                     st.dataframe(
                         df[['titular', 'fecha']].head(10),
                         width='stretch',
@@ -1424,11 +1531,14 @@ def main():
                             </div>
                             """, unsafe_allow_html=True)
                         
-                        # Mostrar detalles adicionales si existen
+                        # Mostrar detalles adicionales si existen - Usando checkbox en lugar de expander
                         if 'details' in alert and alert['details']:
-                            # Espaciado antes del expander
-                            st.markdown("<br>", unsafe_allow_html=True)
-                            with st.expander(f"📋 Ver detalles de {alert['title']}"):
+                            # Usar un checkbox para mostrar/ocultar detalles sin expander
+                            details_key = f"show_details_{i}"
+                            show_details = st.checkbox(f"📋 Ver detalles de {alert['title']}", key=details_key, value=False)
+                            
+                            if show_details:
+                                st.markdown("---")
                                 if isinstance(alert['details'], dict):
                                     for key, value in alert['details'].items():
                                         if isinstance(value, list):
@@ -1437,8 +1547,7 @@ def main():
                                                 st.caption(f"  • {item}")
                                         else:
                                             st.write(f"**{key}:** {value}")
-                            # Espaciado después del expander
-                            st.markdown("<br>", unsafe_allow_html=True)
+                                st.markdown("---")
                 else:
                     st.success("""
                     ✅ **¡Excelente! No se detectaron alertas críticas.**
