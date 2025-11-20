@@ -116,9 +116,10 @@ class NewsGeoMapper:
             control_scale=True
         )
         
-        # Agregar control de capas
-        folium.TileLayer('Stamen Terrain', name='Terreno').add_to(m)
-        folium.TileLayer('CartoDB positron', name='Limpio').add_to(m)
+        # Agregar control de capas - CORREGIDO: Stamen Terrain deprecado
+        # Usar OpenTopoMap en lugar de Stamen Terrain
+        folium.TileLayer('OpenTopoMap', name='Terreno', attr='OpenTopoMap').add_to(m)
+        folium.TileLayer('CartoDB positron', name='Limpio', attr='CartoDB').add_to(m)
         
         # Grupos de marcadores por sentimiento
         cluster_positivo = plugins.MarkerCluster(name="Noticias Positivas").add_to(m)
