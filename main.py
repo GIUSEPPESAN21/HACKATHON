@@ -713,7 +713,7 @@ def main():
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
                 # Vista previa mejorada
-                with st.expander("👁️ Vista Previa de Datos", expanded=False):
+                with st.expander("                                 👁️ Vista Previa de Datos", expanded=False):
                     st.dataframe(
                         df[['titular', 'fecha']].head(10),
                         width='stretch',
