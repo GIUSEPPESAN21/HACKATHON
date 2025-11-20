@@ -1103,13 +1103,14 @@ def main():
             else:
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
-                # Vista previa mejorada - Usando checkbox para mostrar/ocultar sin expander
-                show_preview = st.checkbox("👁️ Mostrar Vista Previa de Datos", value=False)
+                # Vista previa mejorada - Mostrar automáticamente con opción de ocultar
+                show_preview = st.checkbox("👁️ Mostrar Vista Previa de Datos", value=True)
                 if show_preview:
                     st.dataframe(
                         df[['titular', 'fecha']].head(10),
                         width='stretch',
-                        hide_index=True
+                        hide_index=True,
+                        use_container_width=True
                     )
                 
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
