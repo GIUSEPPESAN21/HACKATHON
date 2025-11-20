@@ -636,10 +636,15 @@ st.markdown("""
         padding: 0.6rem 0.8rem !important;
     }
     
-    /* Reducir espaciado en dataframes */
+    /* Reducir espaciado en dataframes - Asegurar visibilidad */
     [data-testid="stDataFrame"] {
         margin-top: 0.3rem !important;
         margin-bottom: 0.3rem !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 100% !important;
+        height: auto !important;
     }
     
     /* Reducir espaciado en spinners */
@@ -853,16 +858,23 @@ st.markdown("""
 # Funciones de autenticación
 def show_login_page():
     """Muestra la página de login/registro"""
+    # Centrar el logo y contenido
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Logo SAVA - REDUCIDO
+        # Logo SAVA - CENTRADO
         try:
-            st.image(LOGO_URL, width=120, use_container_width=False)
+            st.image(LOGO_URL, width=150, use_container_width=False)
         except:
-            st.image(LOGO_COLIBRI_URL, width=120, use_container_width=False)
+            try:
+                st.image(LOGO_COLIBRI_URL, width=150, use_container_width=False)
+            except:
+                st.markdown("## 🌱 SAVA")
         
+        # Centrar el texto
+        st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
         st.markdown("### 🌱 SAVA Agro-Insight PRO")
         st.markdown("**Sistema Inteligente de Análisis de Riesgos Agroindustriales**")
+        st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("---")
         
         # Tabs de Login/Registro
@@ -1103,14 +1115,38 @@ def main():
             else:
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
-                # Vista previa mejorada - Usando checkbox para mostrar/ocultar sin expander
-                show_preview = st.checkbox("👁️ Mostrar Vista Previa de Datos", value=False)
+                # Vista previa mejorada - Mostrar automáticamente con opción de ocultar
+                show_preview = st.checkbox("👁️ Mostrar Vista Previa de Datos", value=True, key="preview_checkbox")
                 if show_preview:
-                    st.dataframe(
-                        df[['titular', 'fecha']].head(10),
-                        width='stretch',
-                        hide_index=True
-                    )
+                    # Asegurar que el dataframe se muestre correctamente
+                    try:
+                        # Verificar que el dataframe tenga datos
+                        if df is not None and len(df) > 0:
+                            if 'titular' in df.columns and 'fecha' in df.columns:
+                                preview_df = df[['titular', 'fecha']].head(10).copy()
+                            else:
+                                # Si no tiene esas columnas, mostrar las primeras columnas disponibles
+                                preview_df = df.head(10).copy()
+                            
+                            # Asegurar que el dataframe no esté vacío
+                            if len(preview_df) > 0:
+                                st.dataframe(
+                                    preview_df,
+                                    hide_index=True,
+                                    use_container_width=True,
+                                    height=300
+                                )
+                            else:
+                                st.info("No hay datos para mostrar en la vista previa")
+                        else:
+                            st.warning("El dataframe está vacío")
+                    except Exception as e:
+                        st.error(f"Error al mostrar la vista previa: {str(e)}")
+                        # Intentar mostrar el dataframe completo como fallback
+                        try:
+                            st.dataframe(df.head(10), use_container_width=True)
+                        except:
+                            st.error("No se pudo mostrar ningún dato")
                 
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
@@ -1589,31 +1625,55 @@ def main():
             else:
                 st.info(prediction)
             
-            # Clustering temático mejorado
+            # Clustering temático mejorado - Usando checkboxes en lugar de expanders
             st.markdown("### 🗂️ Agrupación Temática de Noticias")
             st.caption("Agrupa noticias similares por contenido para identificar temas principales")
-            if st.button("🔍 Generar Clusters Temáticos", type="primary"):
+            
+            # Guardar clusters en session state
+            if 'clusters_generated' not in st.session_state:
+                st.session_state['clusters_generated'] = False
+                st.session_state['df_clustered'] = None
+                st.session_state['themes'] = None
+            
+            if st.button("🔍 Generar Clusters Temáticos", type="primary", key="btn_generate_clusters"):
                 with st.spinner("Agrupando noticias por similitud temática..."):
                     try:
                         df_clustered, themes = trend_analyzer.cluster_news(n_clusters=3)
-                        
-                        if themes:
-                            for i, theme in enumerate(themes):
-                                cluster_data = df_clustered[df_clustered['cluster'] == i]
-                                with st.expander(f"📁 **Cluster {i+1}**: {theme} ({len(cluster_data)} noticias)", expanded=(i==0)):
-                                    st.caption(f"**Tema principal:** {theme}")
-                                    st.caption(f"**Noticias en este cluster:** {len(cluster_data)}")
-                                    
-                                    # Mostrar distribución de sentimientos en el cluster
-                                    sent_dist = cluster_data['sentimiento_ia'].value_counts()
-                                    st.write("Distribución de sentimientos:")
-                                    for sent, count in sent_dist.items():
-                                        st.write(f"- {sent}: {count} ({count/len(cluster_data)*100:.1f}%)")
-                        else:
-                            st.warning("No se pudieron generar temas. Intenta con más noticias.")
+                        st.session_state['clusters_generated'] = True
+                        st.session_state['df_clustered'] = df_clustered
+                        st.session_state['themes'] = themes
+                        st.success("✅ Clusters generados exitosamente")
                     except Exception as e:
                         st.warning(f"No hay suficientes datos para clustering: {str(e)}")
                         st.caption("💡 Se necesitan al menos 5 noticias para generar clusters")
+                        st.session_state['clusters_generated'] = False
+            
+            # Mostrar clusters con checkboxes
+            if st.session_state['clusters_generated'] and st.session_state['themes']:
+                themes = st.session_state['themes']
+                df_clustered = st.session_state['df_clustered']
+                
+                for i, theme in enumerate(themes):
+                    cluster_data = df_clustered[df_clustered['cluster'] == i]
+                    cluster_key = f"show_cluster_{i}"
+                    
+                    show_cluster = st.checkbox(
+                        f"📁 **Cluster {i+1}**: {theme} ({len(cluster_data)} noticias)",
+                        value=(i==0),
+                        key=cluster_key
+                    )
+                    
+                    if show_cluster:
+                        st.markdown(f"**Tema principal:** {theme}")
+                        st.markdown(f"**Noticias en este cluster:** {len(cluster_data)}")
+                        
+                        # Mostrar distribución de sentimientos en el cluster
+                        sent_dist = cluster_data['sentimiento_ia'].value_counts()
+                        st.write("**Distribución de sentimientos:**")
+                        for sent, count in sent_dist.items():
+                            st.write(f"- {sent}: {count} ({count/len(cluster_data)*100:.1f}%)")
+                        
+                        st.markdown("---")
         else:
             st.info("⬅️ Primero realiza un análisis")
     
@@ -1914,28 +1974,67 @@ def main():
     with tabs[8]:
         st.header("🗄️ Historial de Análisis")
         
-        if st.button("🔄 Cargar Historial"):
+        # Guardar historial en session state para que persista
+        if 'historial_loaded' not in st.session_state:
+            st.session_state['historial_loaded'] = False
+            st.session_state['df_hist'] = None
+        
+        if st.button("🔄 Cargar Historial", key="btn_load_history"):
             with st.spinner("Cargando desde Firebase..."):
-                hist = fetch_history(limit=100)
-                
-                if hist:
-                    df_hist = pd.DataFrame(hist)
-                    st.success(f"✅ {len(df_hist)} registros cargados")
+                try:
+                    hist = fetch_history(limit=100)
                     
-                    # Filtros
-                    col_f1, col_f2 = st.columns(2)
-                    with col_f1:
-                        filter_sent = st.multiselect(
-                            "Filtrar por sentimiento",
-                            ['Positivo', 'Negativo', 'Neutro'],
-                            default=['Positivo', 'Negativo', 'Neutro']
-                        )
-                    
-                    df_filtered = df_hist[df_hist['sentimiento'].isin(filter_sent)]
-                    
-                    st.dataframe(df_filtered, width='stretch', height=400)
-                else:
-                    st.warning("No hay historial disponible")
+                    if hist and len(hist) > 0:
+                        df_hist = pd.DataFrame(hist)
+                        st.session_state['historial_loaded'] = True
+                        st.session_state['df_hist'] = df_hist
+                        st.success(f"✅ {len(df_hist)} registros cargados")
+                    else:
+                        st.warning("No hay historial disponible")
+                        st.session_state['historial_loaded'] = False
+                        st.session_state['df_hist'] = None
+                except Exception as e:
+                    st.error(f"Error al cargar historial: {str(e)}")
+                    st.session_state['historial_loaded'] = False
+                    st.session_state['df_hist'] = None
+        
+        # Mostrar historial si está cargado
+        if st.session_state['historial_loaded'] and st.session_state['df_hist'] is not None:
+            df_hist = st.session_state['df_hist']
+            
+            # Filtros
+            col_f1, col_f2 = st.columns(2)
+            with col_f1:
+                filter_sent = st.multiselect(
+                    "Filtrar por sentimiento",
+                    ['Positivo', 'Negativo', 'Neutro'],
+                    default=['Positivo', 'Negativo', 'Neutro'],
+                    key="filter_sentiment"
+                )
+            
+            # Filtrar datos
+            if 'sentimiento' in df_hist.columns:
+                df_filtered = df_hist[df_hist['sentimiento'].isin(filter_sent)].copy()
+            else:
+                df_filtered = df_hist.copy()
+                st.warning("⚠️ La columna 'sentimiento' no está disponible en el historial")
+            
+            # Mostrar dataframe
+            if len(df_filtered) > 0:
+                try:
+                    st.dataframe(
+                        df_filtered,
+                        use_container_width=True,
+                        height=400,
+                        hide_index=True
+                    )
+                except Exception as e:
+                    st.error(f"Error al mostrar el historial: {str(e)}")
+                    # Mostrar información básica como fallback
+                    st.write(f"Total de registros: {len(df_filtered)}")
+                    st.json(df_filtered.head(5).to_dict('records'))
+            else:
+                st.info("No hay registros que coincidan con los filtros seleccionados")
 
 if __name__ == "__main__":
     main()
