@@ -50,12 +50,25 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
     
-    /* Tipografía mejorada */
-    h1, h2, h3, h4, h5, h6 {
+    /* Tipografía mejorada - Más compacta */
+    h1 {
         font-family: 'Poppins', sans-serif !important;
         font-weight: 600 !important;
         letter-spacing: -0.5px !important;
         color: #1a1a2e !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+        padding-top: 0 !important;
+    }
+    
+    h2, h3, h4, h5, h6 {
+        font-family: 'Poppins', sans-serif !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.5px !important;
+        color: #1a1a2e !important;
+        margin-top: 1rem !important;
+        margin-bottom: 0.5rem !important;
+        padding-top: 0 !important;
     }
     
     /* Texto general */
@@ -559,10 +572,38 @@ st.markdown("""
         clear: both !important;
     }
     
-    /* Espaciado entre elementos en la sección de análisis CSV */
+    /* Espaciado entre elementos - Más compacto */
     .element-container {
-        margin-bottom: 1rem !important;
+        margin-bottom: 0.75rem !important;
         clear: both !important;
+    }
+    
+    /* Reducir espaciado en separadores */
+    hr {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Métricas más compactas */
+    [data-testid="stMetricContainer"] {
+        padding: 12px 15px !important;
+        margin: 8px 0 !important;
+    }
+    
+    /* Reducir espaciado en columnas */
+    [data-testid="column"] {
+        padding: 0 0.5rem !important;
+    }
+    
+    /* Espaciado compacto en tabs */
+    .stTabs {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Reducir padding en tarjetas de noticias */
+    .news-card {
+        padding: 15px !important;
+        margin-bottom: 12px !important;
     }
     
     /* Mejorar visualización de noticias - Ancho completo */
@@ -570,11 +611,13 @@ st.markdown("""
         max-width: 100% !important;
     }
     
-    /* Contenedor principal más ancho */
+    /* Contenedor principal más ancho y compacto */
     .main .block-container {
         max-width: 1200px !important;
-        padding-left: 3rem !important;
-        padding-right: 3rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
     }
     
     /* Tarjetas de noticias con mejor espaciado */
@@ -1294,13 +1337,11 @@ def main():
         if data_source is not None:
             trend_analyzer.load_data(data_source)
             
-            # Resumen ejecutivo
-            st.markdown("## 📋 Resumen Ejecutivo")
+            # Resumen ejecutivo - Compacto
+            st.markdown("### 📋 Resumen Ejecutivo")
             st.markdown(trend_analyzer.generate_executive_summary())
             
-            st.markdown("---")
-            
-            # Índices de riesgo y oportunidades
+            # Índices de riesgo y oportunidades - Compacto
             col_risk, col_opp = st.columns(2)
             
             with col_risk:
@@ -1322,9 +1363,7 @@ def main():
                 )
                 st.progress(opp['score']/100)
             
-            st.markdown("---")
-            
-            # MEJORADO: Análisis de tendencias más completo
+            # Análisis de tendencias más completo - Compacto
             st.markdown("### 📊 Análisis Detallado")
             
             # Gráfico de evolución temporal si hay fechas
@@ -1347,56 +1386,71 @@ def main():
                                 labels={'fecha_only': 'Fecha', 'value': 'Cantidad de Noticias'},
                                 color_discrete_map={'Positivo': '#2ecc71', 'Negativo': '#e74c3c', 'Neutro': '#95a5a6'}
                             )
-                            st.plotly_chart(fig_trend, width='stretch')
+                            fig_trend.update_layout(
+                                height=350,
+                                margin=dict(l=50, r=20, t=50, b=40)
+                            )
+                            st.plotly_chart(fig_trend, use_container_width=True)
                 except Exception as e:
                     st.caption(f"⚠️ No se pudo generar gráfico temporal: {e}")
             
-            st.markdown("---")
+            # Palabras clave combinadas en una sola gráfica - Compacto
+            st.markdown("### 📊 Palabras Clave por Sentimiento (Top 10)")
             
-            # Palabras clave mejoradas
-            col_kw1, col_kw2 = st.columns(2)
+            keywords_neg = trend_analyzer.extract_keywords('Negativo', top_n=10)
+            keywords_pos = trend_analyzer.extract_keywords('Positivo', top_n=10)
             
-            with col_kw1:
-                st.markdown("### 🔴 Palabras Clave Negativas (Top 10)")
-                keywords_neg = trend_analyzer.extract_keywords('Negativo', top_n=10)
+            if keywords_neg or keywords_pos:
+                # Combinar datos
+                combined_data = []
+                
                 if keywords_neg:
-                    keywords_neg_df = pd.DataFrame(keywords_neg, columns=['Palabra', 'Frecuencia'])
-                    fig_neg = px.bar(
-                        keywords_neg_df,
-                        x='Frecuencia',
-                        y='Palabra',
-                        orientation='h',
-                        color='Frecuencia',
-                        color_continuous_scale='Reds',
-                        title="Palabras más frecuentes en noticias negativas"
-                    )
-                    fig_neg.update_layout(height=400, showlegend=False)
-                    st.plotly_chart(fig_neg, width='stretch')
-                else:
-                    st.info("No hay palabras clave negativas detectadas")
-            
-            with col_kw2:
-                st.markdown("### 🟢 Palabras Clave Positivas (Top 10)")
-                keywords_pos = trend_analyzer.extract_keywords('Positivo', top_n=10)
+                    for word, freq in keywords_neg:
+                        combined_data.append({'Palabra': word, 'Frecuencia': freq, 'Sentimiento': 'Negativo'})
+                
                 if keywords_pos:
-                    keywords_pos_df = pd.DataFrame(keywords_pos, columns=['Palabra', 'Frecuencia'])
-                    fig_pos = px.bar(
-                        keywords_pos_df,
+                    for word, freq in keywords_pos:
+                        combined_data.append({'Palabra': word, 'Frecuencia': freq, 'Sentimiento': 'Positivo'})
+                
+                if combined_data:
+                    df_combined = pd.DataFrame(combined_data)
+                    
+                    # Crear gráfica combinada
+                    fig_combined = px.bar(
+                        df_combined,
                         x='Frecuencia',
                         y='Palabra',
                         orientation='h',
-                        color='Frecuencia',
-                        color_continuous_scale='Greens',
-                        title="Palabras más frecuentes en noticias positivas"
+                        color='Sentimiento',
+                        color_discrete_map={'Negativo': '#e74c3c', 'Positivo': '#2ecc71'},
+                        title="Top 10 Palabras Clave: Negativas vs Positivas",
+                        labels={'Frecuencia': 'Frecuencia', 'Palabra': 'Palabra Clave'},
+                        barmode='group'
                     )
-                    fig_pos.update_layout(height=400, showlegend=False)
-                    st.plotly_chart(fig_pos, width='stretch')
-                else:
-                    st.info("No hay palabras clave positivas detectadas")
+                    
+                    fig_combined.update_layout(
+                        height=450,
+                        showlegend=True,
+                        legend=dict(
+                            orientation="h",
+                            yanchor="bottom",
+                            y=1.02,
+                            xanchor="right",
+                            x=1,
+                            font=dict(size=12)
+                        ),
+                        margin=dict(l=100, r=20, t=50, b=30),
+                        plot_bgcolor='white',
+                        paper_bgcolor='white',
+                        font=dict(size=11)
+                    )
+                    
+                    fig_combined.update_traces(marker_line_width=0.5, marker_line_color='white')
+                    st.plotly_chart(fig_combined, use_container_width=True)
+            else:
+                st.info("No se detectaron palabras clave")
             
-            st.markdown("---")
-            
-            # Predicción de tendencia mejorada
+            # Predicción de tendencia mejorada - Compacto
             st.markdown("### 🔮 Predicción de Tendencia")
             prediction = trend_analyzer.predict_sentiment_trend()
             if "No hay" not in prediction and "suficientes" not in prediction:
