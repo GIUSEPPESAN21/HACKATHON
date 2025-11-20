@@ -396,14 +396,60 @@ st.markdown("""
         border-left: 3px solid #667eea !important;
     }
     
-    /* Ocultar iconos de expander */
+    /* === CORRECCIÓN DE EXPANDERS Y TEXTO - EVITAR SOLAPAMIENTO === */
+    
+    /* Expander Header: Asegurar Flexbox correcto para evitar solapamiento */
     .streamlit-expanderHeader {
-        display: none !important;
+        display: flex !important;
+        align-items: center !important;
+        background-color: white !important;
+        border: 1px solid #e9ecef !important;
+        border-radius: 8px !important;
+        padding: 0.75rem 1rem !important;
+        margin-bottom: 0.5rem !important;
+        min-height: 48px !important;
+    }
+    
+    /* Evitar que el texto interno del expander tenga márgenes que rompan la alineación */
+    .streamlit-expanderHeader p,
+    .streamlit-expanderHeader span,
+    .streamlit-expanderHeader div {
+        margin-bottom: 0 !important;
+        margin-top: 0 !important;
+        font-weight: 500 !important;
+        color: #333 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Contenido del expander - Evitar solapamiento */
+    .streamlit-expanderContent {
+        padding: 1rem !important;
+        margin-top: 0.5rem !important;
+        clear: both !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Asegurar que los elementos dentro de expanders no se solapen */
+    .streamlit-expanderContent > * {
+        margin-bottom: 0.75rem !important;
+        clear: both !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    .streamlit-expanderContent > *:last-child {
+        margin-bottom: 0 !important;
     }
     
     /* Mejorar visualización de noticias - Ancho completo */
     .element-container {
         max-width: 100% !important;
+        margin-bottom: 1rem !important;
+        clear: both !important;
     }
     
     /* Contenedor principal más ancho */
@@ -411,11 +457,49 @@ st.markdown("""
         max-width: 1200px !important;
         padding-left: 3rem !important;
         padding-right: 3rem !important;
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
     }
     
-    /* Tarjetas de noticias con mejor espaciado */
+    /* Tarjetas de noticias con mejor espaciado - SIN SOLAPAMIENTO */
     .news-card {
         margin-bottom: 20px !important;
+        margin-top: 10px !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 1 !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+    }
+    
+    /* Asegurar que el texto dentro de las tarjetas no se solape */
+    .news-card * {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Espaciado entre elementos de texto */
+    .stMarkdown p,
+    .stMarkdown div,
+    .stMarkdown span {
+        margin-bottom: 0.75rem !important;
+        line-height: 1.6 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Evitar solapamiento en columnas */
+    [data-testid="column"] {
+        padding: 0 0.75rem !important;
+        margin-bottom: 0.5rem !important;
+        clear: both !important;
+    }
+    
+    /* Espaciado compacto entre elementos */
+    .stElementContainer {
+        margin-bottom: 0.8rem !important;
+        clear: both !important;
     }
     
     /* Asegurar que el texto del sidebar sea completamente visible */
@@ -450,6 +534,135 @@ st.markdown("""
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
+    }
+    
+    /* === CORRECCIONES ADICIONALES PARA EVITAR SOLAPAMIENTO === */
+    
+    /* Asegurar que todos los elementos tengan box-sizing correcto */
+    * {
+        box-sizing: border-box !important;
+    }
+    
+    /* Evitar solapamiento en métricas */
+    [data-testid="stMetricContainer"] {
+        padding: 15px !important;
+        margin: 10px 0 !important;
+        min-height: 80px !important;
+        clear: both !important;
+    }
+    
+    [data-testid="stMetricValue"] {
+        margin-bottom: 5px !important;
+        padding-bottom: 5px !important;
+        word-wrap: break-word !important;
+    }
+    
+    [data-testid="stMetricDelta"] {
+        margin-top: 5px !important;
+        padding-top: 5px !important;
+    }
+    
+    /* Mejorar espaciado en formularios */
+    .stForm {
+        margin-bottom: 1.5rem !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en tabs */
+    .stTabs {
+        margin-bottom: 1.5rem !important;
+        clear: both !important;
+    }
+    
+    /* Asegurar que los elementos de texto tengan espaciado adecuado */
+    body, .stMarkdown, p, div, span {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Evitar solapamiento en elementos inline */
+    .stMarkdown strong,
+    .stMarkdown b,
+    .stMarkdown em,
+    .stMarkdown i {
+        display: inline !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Mejorar espaciado en listas */
+    ul, ol, li {
+        margin-bottom: 8px !important;
+        clear: both !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Asegurar que los elementos dentro de columnas no se solapen */
+    .stColumn {
+        padding: 0 10px !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en subheaders */
+    h2, h3, h4 {
+        margin-top: 1.5rem !important;
+        margin-bottom: 1rem !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en secciones */
+    section {
+        margin-bottom: 1.5rem !important;
+        clear: both !important;
+    }
+    
+    /* Asegurar que los elementos de alertas no se solapen */
+    .stAlert,
+    .stSuccess,
+    .stInfo,
+    .stWarning,
+    .stError {
+        margin: 15px 0 !important;
+        clear: both !important;
+        padding: 15px !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Mejorar espaciado en inputs y textareas */
+    .stTextInput,
+    .stTextArea {
+        margin-bottom: 15px !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar espaciado en botones */
+    .stButton {
+        margin: 10px 0 !important;
+        clear: both !important;
+    }
+    
+    /* Asegurar que los dataframes dentro de expanders no se solapen */
+    .streamlit-expanderContent [data-testid="stDataFrame"] {
+        margin: 10px 0 !important;
+        clear: both !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+    }
+    
+    /* Responsive design para evitar solapamiento en pantallas pequeñas */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding: 1rem !important;
+        }
+        
+        [data-testid="column"] {
+            padding: 0 0.25rem !important;
+        }
+        
+        .streamlit-expanderHeader {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 14px !important;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
