@@ -50,25 +50,12 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
     
-    /* Tipografía mejorada - Más compacta */
-    h1 {
+    /* Tipografía mejorada */
+    h1, h2, h3, h4, h5, h6 {
         font-family: 'Poppins', sans-serif !important;
         font-weight: 600 !important;
         letter-spacing: -0.5px !important;
         color: #1a1a2e !important;
-        margin-top: 0.5rem !important;
-        margin-bottom: 0.5rem !important;
-        padding-top: 0 !important;
-    }
-    
-    h2, h3, h4, h5, h6 {
-        font-family: 'Poppins', sans-serif !important;
-        font-weight: 600 !important;
-        letter-spacing: -0.5px !important;
-        color: #1a1a2e !important;
-        margin-top: 1rem !important;
-        margin-bottom: 0.5rem !important;
-        padding-top: 0 !important;
     }
     
     /* Texto general */
@@ -516,10 +503,10 @@ st.markdown("""
         padding: 1rem !important;
     }
     
-    /* Asegurar que los botones no se solapen con expanders - COMPACTO */
+    /* Asegurar que los botones no se solapen con expanders */
     .stButton {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
+        margin-top: 1rem !important;
+        margin-bottom: 0.5rem !important;
         clear: both !important;
         position: relative !important;
         z-index: 10 !important;
@@ -530,11 +517,11 @@ st.markdown("""
         margin-bottom: 1.5rem !important;
     }
     
-    /* Asegurar que los botones tengan espacio suficiente y no se solapen - COMPACTO */
+    /* Asegurar que los botones tengan espacio suficiente y no se solapen */
     [data-testid="column"] .stButton {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-        padding: 0.2rem 0 !important;
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+        padding: 0.5rem 0 !important;
     }
     
     /* Asegurar que no haya texto flotante sobre los botones */
@@ -572,179 +559,10 @@ st.markdown("""
         clear: both !important;
     }
     
-    /* Espaciado entre elementos - MUY COMPACTO */
+    /* Espaciado entre elementos en la sección de análisis CSV */
     .element-container {
-        margin-bottom: 0.4rem !important;
+        margin-bottom: 1rem !important;
         clear: both !important;
-    }
-    
-    /* Reducir espaciado en separadores */
-    hr {
-        margin-top: 0.5rem !important;
-        margin-bottom: 0.5rem !important;
-    }
-    
-    /* Métricas más compactas */
-    [data-testid="stMetricContainer"] {
-        padding: 10px 12px !important;
-        margin: 4px 0 !important;
-    }
-    
-    /* Reducir espaciado en columnas */
-    [data-testid="column"] {
-        padding: 0 0.5rem !important;
-    }
-    
-    /* Espaciado compacto en tabs */
-    .stTabs {
-        margin-bottom: 0.5rem !important;
-    }
-    
-    /* Reducir padding en tarjetas de noticias */
-    .news-card {
-        padding: 12px !important;
-        margin-bottom: 8px !important;
-    }
-    
-    /* Reducir espaciado en párrafos y texto */
-    .stMarkdown p {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en inputs */
-    .stTextInput,
-    .stTextArea {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en checkboxes y radio buttons */
-    .stCheckbox,
-    .stRadio {
-        margin-top: 0.2rem !important;
-        margin-bottom: 0.2rem !important;
-    }
-    
-    /* Reducir espaciado en info boxes */
-    .stInfo,
-    .stSuccess,
-    .stWarning,
-    .stError {
-        margin-top: 0.4rem !important;
-        margin-bottom: 0.4rem !important;
-        padding: 0.6rem 0.8rem !important;
-    }
-    
-    /* Reducir espaciado en dataframes */
-    [data-testid="stDataFrame"] {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en spinners */
-    .stSpinner {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en progress bars */
-    .stProgress {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en separadores horizontales (---) */
-    hr,
-    .stMarkdown hr {
-        margin-top: 0.4rem !important;
-        margin-bottom: 0.4rem !important;
-        border: none !important;
-        border-top: 1px solid #e0e0e0 !important;
-    }
-    
-    /* Reducir espaciado en subheaders y títulos */
-    h3, h4, h5, h6 {
-        margin-top: 0.5rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en contenedores de gráficas */
-    [data-testid="stPlotlyChart"] {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en captions */
-    .stCaption {
-        margin-top: 0.2rem !important;
-        margin-bottom: 0.2rem !important;
-    }
-    
-    /* Reducir espaciado en expanders */
-    .streamlit-expander {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en file uploader */
-    .stFileUploader {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en selectboxes y multiselect */
-    .stSelectbox,
-    .stMultiselect {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en number input */
-    .stNumberInput {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en sliders */
-    .stSlider {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en containers */
-    .stContainer {
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    /* Reducir espaciado en columnas cuando tienen contenido */
-    [data-testid="column"] > div {
-        margin-top: 0.2rem !important;
-        margin-bottom: 0.2rem !important;
-    }
-    
-    /* Reducir altura de saltos de línea <br> */
-    br {
-        line-height: 0.3 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        display: block !important;
-        content: "" !important;
-    }
-    
-    /* Reducir espaciado en todos los elementos markdown */
-    .stMarkdown {
-        margin-top: 0.2rem !important;
-        margin-bottom: 0.2rem !important;
-    }
-    
-    /* Reducir espaciado en divs vacíos o con solo espacios */
-    div:empty,
-    p:empty {
-        margin: 0 !important;
-        padding: 0 !important;
-        height: 0 !important;
     }
     
     /* Mejorar visualización de noticias - Ancho completo */
@@ -752,13 +570,11 @@ st.markdown("""
         max-width: 100% !important;
     }
     
-    /* Contenedor principal más ancho y compacto */
+    /* Contenedor principal más ancho */
     .main .block-container {
         max-width: 1200px !important;
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
-        padding-top: 1.5rem !important;
-        padding-bottom: 1.5rem !important;
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
     }
     
     /* Tarjetas de noticias con mejor espaciado */
@@ -861,6 +677,7 @@ def show_login_page():
         except:
             st.image(LOGO_COLIBRI_URL, width=120, use_container_width=False)
         
+        st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("### 🌱 SAVA Agro-Insight PRO")
         st.markdown("**Sistema Inteligente de Análisis de Riesgos Agroindustriales**")
         st.markdown("---")
@@ -931,6 +748,8 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
         except:
             st.image("https://cdn-icons-png.flaticon.com/512/1094/1094349.png", width=80)
     
+    st.markdown("<br>", unsafe_allow_html=True)
+    
     # Información del usuario
     if is_authenticated():
         user = get_current_user()
@@ -986,6 +805,8 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     st.markdown("### ⚙️ Configuración")
     use_cache = st.checkbox("Usar caché inteligente", value=use_cache, help="Reduce consumo de API hasta 80%")
     use_smart_batch = st.checkbox("Batch inteligente", value=use_smart_batch, help="Procesa múltiples noticias por prompt")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Botón Limpiar Caché - VISIBLE Y FUNCIONAL
     if st.button("🗑️ Limpiar caché", use_container_width=True, type="secondary", key="btn_clear_cache"):
@@ -1112,6 +933,9 @@ def main():
                         hide_index=True
                     )
                 
+                # Espaciado antes de los botones
+                st.markdown("<br>", unsafe_allow_html=True)
+                
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
                 with col_btn1:
@@ -1208,6 +1032,8 @@ def main():
             col4.metric("⚪ Neutras", neu_res, delta=f"{neu_res/total_res*100:.1f}%")
             
             # Resultados en tarjetas mejoradas - Más anchas y claras
+            st.markdown("<br>", unsafe_allow_html=True)
+            
             for index, row in df_res.iterrows():
                 sentimiento = row.get('sentimiento_ia', 'Neutro')
                 titular = str(row.get('titular', 'Sin título'))
@@ -1468,11 +1294,13 @@ def main():
         if data_source is not None:
             trend_analyzer.load_data(data_source)
             
-            # Resumen ejecutivo - Compacto
-            st.markdown("### 📋 Resumen Ejecutivo")
+            # Resumen ejecutivo
+            st.markdown("## 📋 Resumen Ejecutivo")
             st.markdown(trend_analyzer.generate_executive_summary())
             
-            # Índices de riesgo y oportunidades - Compacto
+            st.markdown("---")
+            
+            # Índices de riesgo y oportunidades
             col_risk, col_opp = st.columns(2)
             
             with col_risk:
@@ -1494,7 +1322,9 @@ def main():
                 )
                 st.progress(opp['score']/100)
             
-            # Análisis de tendencias más completo - Compacto
+            st.markdown("---")
+            
+            # MEJORADO: Análisis de tendencias más completo
             st.markdown("### 📊 Análisis Detallado")
             
             # Gráfico de evolución temporal si hay fechas
@@ -1517,71 +1347,56 @@ def main():
                                 labels={'fecha_only': 'Fecha', 'value': 'Cantidad de Noticias'},
                                 color_discrete_map={'Positivo': '#2ecc71', 'Negativo': '#e74c3c', 'Neutro': '#95a5a6'}
                             )
-                            fig_trend.update_layout(
-                                height=350,
-                                margin=dict(l=50, r=20, t=50, b=40)
-                            )
-                            st.plotly_chart(fig_trend, use_container_width=True)
+                            st.plotly_chart(fig_trend, width='stretch')
                 except Exception as e:
                     st.caption(f"⚠️ No se pudo generar gráfico temporal: {e}")
             
-            # Palabras clave combinadas en una sola gráfica - Compacto
-            st.markdown("### 📊 Palabras Clave por Sentimiento (Top 10)")
+            st.markdown("---")
             
-            keywords_neg = trend_analyzer.extract_keywords('Negativo', top_n=10)
-            keywords_pos = trend_analyzer.extract_keywords('Positivo', top_n=10)
+            # Palabras clave mejoradas
+            col_kw1, col_kw2 = st.columns(2)
             
-            if keywords_neg or keywords_pos:
-                # Combinar datos
-                combined_data = []
-                
+            with col_kw1:
+                st.markdown("### 🔴 Palabras Clave Negativas (Top 10)")
+                keywords_neg = trend_analyzer.extract_keywords('Negativo', top_n=10)
                 if keywords_neg:
-                    for word, freq in keywords_neg:
-                        combined_data.append({'Palabra': word, 'Frecuencia': freq, 'Sentimiento': 'Negativo'})
-                
-                if keywords_pos:
-                    for word, freq in keywords_pos:
-                        combined_data.append({'Palabra': word, 'Frecuencia': freq, 'Sentimiento': 'Positivo'})
-                
-                if combined_data:
-                    df_combined = pd.DataFrame(combined_data)
-                    
-                    # Crear gráfica combinada
-                    fig_combined = px.bar(
-                        df_combined,
+                    keywords_neg_df = pd.DataFrame(keywords_neg, columns=['Palabra', 'Frecuencia'])
+                    fig_neg = px.bar(
+                        keywords_neg_df,
                         x='Frecuencia',
                         y='Palabra',
                         orientation='h',
-                        color='Sentimiento',
-                        color_discrete_map={'Negativo': '#e74c3c', 'Positivo': '#2ecc71'},
-                        title="Top 10 Palabras Clave: Negativas vs Positivas",
-                        labels={'Frecuencia': 'Frecuencia', 'Palabra': 'Palabra Clave'},
-                        barmode='group'
+                        color='Frecuencia',
+                        color_continuous_scale='Reds',
+                        title="Palabras más frecuentes en noticias negativas"
                     )
-                    
-                    fig_combined.update_layout(
-                        height=450,
-                        showlegend=True,
-                        legend=dict(
-                            orientation="h",
-                            yanchor="bottom",
-                            y=1.02,
-                            xanchor="right",
-                            x=1,
-                            font=dict(size=12)
-                        ),
-                        margin=dict(l=100, r=20, t=50, b=30),
-                        plot_bgcolor='white',
-                        paper_bgcolor='white',
-                        font=dict(size=11)
-                    )
-                    
-                    fig_combined.update_traces(marker_line_width=0.5, marker_line_color='white')
-                    st.plotly_chart(fig_combined, use_container_width=True)
-            else:
-                st.info("No se detectaron palabras clave")
+                    fig_neg.update_layout(height=400, showlegend=False)
+                    st.plotly_chart(fig_neg, width='stretch')
+                else:
+                    st.info("No hay palabras clave negativas detectadas")
             
-            # Predicción de tendencia mejorada - Compacto
+            with col_kw2:
+                st.markdown("### 🟢 Palabras Clave Positivas (Top 10)")
+                keywords_pos = trend_analyzer.extract_keywords('Positivo', top_n=10)
+                if keywords_pos:
+                    keywords_pos_df = pd.DataFrame(keywords_pos, columns=['Palabra', 'Frecuencia'])
+                    fig_pos = px.bar(
+                        keywords_pos_df,
+                        x='Frecuencia',
+                        y='Palabra',
+                        orientation='h',
+                        color='Frecuencia',
+                        color_continuous_scale='Greens',
+                        title="Palabras más frecuentes en noticias positivas"
+                    )
+                    fig_pos.update_layout(height=400, showlegend=False)
+                    st.plotly_chart(fig_pos, width='stretch')
+                else:
+                    st.info("No hay palabras clave positivas detectadas")
+            
+            st.markdown("---")
+            
+            # Predicción de tendencia mejorada
             st.markdown("### 🔮 Predicción de Tendencia")
             prediction = trend_analyzer.predict_sentiment_trend()
             if "No hay" not in prediction and "suficientes" not in prediction:
