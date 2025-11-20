@@ -44,10 +44,40 @@ st.markdown("""
     /* Importar fuentes de Google */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
     
-    /* Tema general mejorado */
+    /* Tema general mejorado - PROFESIONAL Y COMPACTO */
     .main { 
         background: linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 50%, #c3cfe2 100%);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        padding: 0 !important;
+    }
+    
+    /* Contenedor principal optimizado */
+    .main .block-container {
+        max-width: 1400px !important;
+        padding: 1.5rem 2rem !important;
+        padding-top: 1.5rem !important;
+        padding-bottom: 2rem !important;
+    }
+    
+    /* Optimizar espaciado entre secciones */
+    section {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Reducir espaciado innecesario en headers */
+    h1 {
+        margin-bottom: 0.5rem !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    h2 {
+        margin-bottom: 0.75rem !important;
+        margin-top: 1rem !important;
+    }
+    
+    h3 {
+        margin-bottom: 0.5rem !important;
+        margin-top: 0.75rem !important;
     }
     
     /* Tipografía mejorada */
@@ -89,28 +119,51 @@ st.markdown("""
         padding: 0 10px !important;
     }
     
-    /* Mejorar espaciado en tarjetas */
+    /* Mejorar espaciado en tarjetas - OPTIMIZADO */
     .element-container {
-        margin-bottom: 20px !important;
+        margin-bottom: 1rem !important;
     }
     
-    /* Botones premium mejorados */
-    .stButton>button {
+    /* Espaciado optimizado para columnas */
+    [data-testid="column"] {
+        padding: 0 0.75rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Espaciado entre elementos de formulario */
+    .stForm {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Optimizar espaciado en tabs */
+    .stTabs {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Espaciado en expanders */
+    .streamlit-expander {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Botones premium mejorados - PROFESIONAL Y COMPACTO */
+    .stButton>button:not([data-testid="stSidebar"] button) {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         color: white !important;
         border: none !important;
-        border-radius: 12px !important;
-        padding: 12px 28px !important;
+        border-radius: 10px !important;
+        padding: 0.625rem 1.5rem !important;
         font-weight: 600 !important;
-        font-size: 15px !important;
+        font-size: 14px !important;
         letter-spacing: 0.3px !important;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3) !important;
         transition: all 0.3s ease !important;
         font-family: 'Inter', sans-serif !important;
+        margin: 0.25rem 0 !important;
     }
-    .stButton>button:hover {
-        transform: translateY(-2px) scale(1.02) !important;
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+    
+    .stButton>button:not([data-testid="stSidebar"] button):hover {
+        transform: translateY(-1px) scale(1.01) !important;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4) !important;
     }
     
     /* Botones secundarios */
@@ -120,27 +173,43 @@ st.markdown("""
         border: 2px solid #667eea !important;
     }
     
-    /* Métricas mejoradas */
+    /* Métricas mejoradas - PROFESIONAL Y COMPACTO */
     div[data-testid="stMetricValue"] {
-        font-size: 32px !important;
+        font-size: 28px !important;
         font-weight: 700 !important;
         font-family: 'Poppins', sans-serif !important;
         color: #1a1a2e !important;
         letter-spacing: -0.5px !important;
     }
     
-    /* Inputs mejorados */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        font-family: 'Inter', sans-serif !important;
-        font-size: 15px !important;
-        border-radius: 10px !important;
-        border: 2px solid #e0e0e0 !important;
-        padding: 10px 15px !important;
-        transition: all 0.3s ease !important;
+    [data-testid="stMetricContainer"] {
+        padding: 1rem !important;
+        margin: 0.5rem 0 !important;
     }
-    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+    
+    /* Inputs mejorados - PROFESIONAL Y COMPACTO */
+    .stTextInput>div>div>input, 
+    .stTextArea>div>div>textarea {
+        font-family: 'Inter', sans-serif !important;
+        font-size: 14px !important;
+        border-radius: 8px !important;
+        border: 2px solid #e0e0e0 !important;
+        padding: 0.625rem 0.875rem !important;
+        transition: all 0.3s ease !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .stTextInput>div>div>input:focus, 
+    .stTextArea>div>div>textarea:focus {
         border-color: #667eea !important;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    }
+    
+    /* Labels más compactos */
+    .stTextInput label,
+    .stTextArea label {
+        font-size: 14px !important;
+        margin-bottom: 0.375rem !important;
     }
     
     /* Tarjetas con sombra */
@@ -151,18 +220,39 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0,0,0,0.07);
     }
     
-    /* Sidebar premium mejorado */
+    /* Sidebar premium mejorado - PROFESIONAL Y COMPACTO */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
         color: white !important;
+        padding: 1.5rem 1rem !important;
     }
+    
     [data-testid="stSidebar"] * {
         color: white !important;
         font-family: 'Inter', sans-serif !important;
     }
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+    
+    [data-testid="stSidebar"] h1, 
+    [data-testid="stSidebar"] h2, 
+    [data-testid="stSidebar"] h3 {
         font-family: 'Poppins', sans-serif !important;
         color: white !important;
+        margin-top: 0.75rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Optimizar espaciado en sidebar */
+    [data-testid="stSidebar"] .element-container {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    [data-testid="stSidebar"] hr {
+        margin: 1rem 0 !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    [data-testid="stSidebar"] .stMarkdown {
+        margin-bottom: 0.5rem !important;
     }
     
     /* Ocultar botón de toggle del sidebar */
@@ -195,26 +285,29 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Botones del sidebar mejorados - Mejor contraste */
-    [data-testid="stSidebar"] .stButton>button {
-        background: rgba(255, 255, 255, 0.2) !important;
+    /* Botones del sidebar mejorados - PROFESIONAL Y COMPACTO */
+    [data-testid="stSidebar"] .stButton>button:not([key="btn_clear_cache"]):not([key="btn_logout_sidebar"]) {
+        background: rgba(255, 255, 255, 0.15) !important;
         color: white !important;
-        border: 2px solid rgba(255, 255, 255, 0.4) !important;
-        border-radius: 10px !important;
-        padding: 12px 20px !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+        padding: 0.625rem 1rem !important;
         font-weight: 600 !important;
         font-size: 14px !important;
         letter-spacing: 0.3px !important;
         width: 100% !important;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
         transition: all 0.3s ease !important;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+        margin: 0.375rem 0 !important;
+        min-height: 40px !important;
     }
-    [data-testid="stSidebar"] .stButton>button:hover {
-        background: rgba(255, 255, 255, 0.3) !important;
-        border-color: rgba(255, 255, 255, 0.6) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35) !important;
+    
+    [data-testid="stSidebar"] .stButton>button:not([key="btn_clear_cache"]):not([key="btn_logout_sidebar"]):hover {
+        background: rgba(255, 255, 255, 0.25) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
     }
     
@@ -263,44 +356,61 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
-    /* Tabs mejorados */
+    /* Tabs mejorados - PROFESIONAL Y COMPACTO */
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+        gap: 0.5rem;
         background-color: white;
         border-radius: 10px;
-        padding: 5px;
+        padding: 0.375rem;
+        margin-bottom: 1rem;
     }
+    
     .stTabs [data-baseweb="tab"] {
         border-radius: 8px;
-        padding: 10px 20px;
+        padding: 0.625rem 1.25rem;
         font-weight: 500;
+        font-size: 14px;
     }
+    
     .stTabs [aria-selected="true"] {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
     }
     
-    /* Alerts personalizadas */
+    /* Alerts personalizadas - PROFESIONAL Y COMPACTO */
     .alert-critical {
         background-color: #fee;
-        border-left: 5px solid #e74c3c;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 10px 0;
+        border-left: 4px solid #e74c3c;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.75rem 0;
     }
+    
     .alert-high {
         background-color: #fff3cd;
-        border-left: 5px solid #f39c12;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 10px 0;
+        border-left: 4px solid #f39c12;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.75rem 0;
     }
+    
     .alert-medium {
         background-color: #e7f3ff;
-        border-left: 5px solid #3498db;
-        padding: 15px;
-        border-radius: 5px;
-        margin: 10px 0;
+        border-left: 4px solid #3498db;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.75rem 0;
+    }
+    
+    /* Streamlit alerts mejorados */
+    .stAlert,
+    .stSuccess,
+    .stInfo,
+    .stWarning,
+    .stError {
+        padding: 0.875rem 1rem !important;
+        margin: 0.75rem 0 !important;
+        border-radius: 8px !important;
     }
     
     /* Chat messages - MEJORADO: Sin solapamiento */
@@ -701,18 +811,19 @@ st.markdown("""
         clear: both !important;
     }
     
-    /* Mejorar expanders para evitar solapamiento */
+    /* Mejorar expanders - PROFESIONAL Y COMPACTO */
     .streamlit-expanderHeader {
-        padding: 12px 15px !important;
-        margin-bottom: 5px !important;
+        padding: 0.75rem 1rem !important;
+        margin-bottom: 0.25rem !important;
         font-weight: 600 !important;
         line-height: 1.5 !important;
+        border-radius: 8px !important;
     }
     
     .streamlit-expanderContent {
-        padding: 15px !important;
-        margin-top: 5px !important;
-        margin-bottom: 15px !important;
+        padding: 1rem !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.75rem !important;
         clear: both !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
@@ -721,7 +832,7 @@ st.markdown("""
     
     /* Asegurar que los elementos dentro de expanders no se solapen */
     .streamlit-expanderContent > * {
-        margin-bottom: 12px !important;
+        margin-bottom: 0.75rem !important;
         clear: both !important;
     }
     
@@ -731,14 +842,29 @@ st.markdown("""
     
     /* Mejorar espaciado en contenedores de alertas */
     [data-testid="stExpander"] {
-        margin-bottom: 20px !important;
+        margin-bottom: 1rem !important;
         clear: both !important;
     }
     
     /* Asegurar que las columnas dentro de expanders no se solapen */
     .streamlit-expanderContent [data-testid="column"] {
-        padding: 0 10px !important;
-        margin-bottom: 10px !important;
+        padding: 0 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding: 1rem !important;
+        }
+        
+        [data-testid="stSidebar"] {
+            padding: 1rem 0.75rem !important;
+        }
+        
+        [data-testid="column"] {
+            padding: 0 0.25rem !important;
+        }
     }
     
     /* Mejorar espaciado en listas */
@@ -864,39 +990,45 @@ st.markdown("""
         opacity: 0 !important;
     }
     
-    /* Mejorar botón de limpiar caché y cerrar sesión en sidebar */
+    /* Mejorar botón de limpiar caché y cerrar sesión en sidebar - PROFESIONAL */
     [data-testid="stSidebar"] button[key="btn_clear_cache"],
     [data-testid="stSidebar"] button[key="btn_logout_sidebar"] {
-        background: rgba(231, 76, 60, 0.35) !important;
+        background: rgba(231, 76, 60, 0.4) !important;
         color: #ffffff !important;
-        border: 2px solid rgba(231, 76, 60, 0.7) !important;
+        border: 2px solid rgba(231, 76, 60, 0.8) !important;
         font-weight: 600 !important;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
-        padding: 14px 24px !important;
-        margin: 10px 0 !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+        padding: 0.75rem 1.25rem !important;
+        margin: 0.5rem 0 !important;
         width: 100% !important;
         display: block !important;
         clear: both !important;
-        font-size: 15px !important;
-        letter-spacing: 0.5px !important;
-        box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3) !important;
-    }
-    [data-testid="stSidebar"] button[key="btn_clear_cache"]:hover,
-    [data-testid="stSidebar"] button[key="btn_logout_sidebar"]:hover {
-        background: rgba(231, 76, 60, 0.55) !important;
-        border-color: rgba(231, 76, 60, 0.9) !important;
-        color: #ffffff !important;
-        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4) !important;
+        font-size: 14px !important;
+        letter-spacing: 0.3px !important;
+        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.35) !important;
+        border-radius: 8px !important;
+        transition: all 0.3s ease !important;
+        cursor: pointer !important;
     }
     
-    /* Asegurar que el botón de cerrar sesión sea siempre visible */
-    [data-testid="stSidebar"] button[key="btn_logout_sidebar"] {
+    [data-testid="stSidebar"] button[key="btn_clear_cache"]:hover,
+    [data-testid="stSidebar"] button[key="btn_logout_sidebar"]:hover {
+        background: rgba(231, 76, 60, 0.6) !important;
+        border-color: rgba(231, 76, 60, 1) !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5) !important;
+    }
+    
+    /* Asegurar que los botones sean siempre visibles y funcionales */
+    [data-testid="stSidebar"] button[key="btn_logout_sidebar"],
+    [data-testid="stSidebar"] button[key="btn_clear_cache"] {
         position: relative !important;
         z-index: 100 !important;
         visibility: visible !important;
         opacity: 1 !important;
+        min-height: 44px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -985,15 +1117,14 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Información del usuario - Mejorado
+    # Información del usuario - PROFESIONAL Y COMPACTO
     if is_authenticated():
         user = get_current_user()
         st.markdown("### 👤 Usuario")
         st.markdown(f"**{user['username']}**")
-        st.markdown(f"📧 {user['email']}")
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(f"<small>📧 {user['email']}</small>", unsafe_allow_html=True)
         
-        # Botón de cerrar sesión - MEJORADO: Más visible y funcional
+        # Botón de cerrar sesión - VISIBLE Y FUNCIONAL
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🚪 Cerrar Sesión", use_container_width=True, type="secondary", key="btn_logout_sidebar"):
             try:
@@ -1005,7 +1136,6 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
                 st.rerun()
             except Exception as e:
                 st.error(f"Error al cerrar sesión: {str(e)}")
-        st.markdown("<br>", unsafe_allow_html=True)
         
         st.markdown("---")
     else:
@@ -1045,23 +1175,27 @@ def render_sidebar(use_cache=True, use_smart_batch=False):
     
     st.markdown("---")
     
-    # Opciones de configuración
+    # Opciones de configuración - PROFESIONAL Y COMPACTO
     st.markdown("### ⚙️ Configuración")
     use_cache = st.checkbox("Usar caché inteligente", value=use_cache, help="Reduce consumo de API hasta 80%")
     use_smart_batch = st.checkbox("Batch inteligente", value=use_smart_batch, help="Procesa múltiples noticias por prompt")
     
-    # Botón limpiar caché con mejor visibilidad
-    if cache_mgr and st.button("🗑️ Limpiar caché", use_container_width=True, key="btn_clear_cache"):
-        try:
-            deleted = cache_mgr.clear_old_entries(max_age_days=30)
-            st.success(f"✅ {deleted} entradas eliminadas")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Error al limpiar caché: {str(e)}")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Botón limpiar caché - VISIBLE Y FUNCIONAL
+    if cache_mgr:
+        if st.button("🗑️ Limpiar caché", use_container_width=True, type="secondary", key="btn_clear_cache"):
+            try:
+                deleted = cache_mgr.clear_old_entries(max_age_days=30)
+                st.success(f"✅ {deleted} entradas eliminadas")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error al limpiar caché: {str(e)}")
+    else:
+        st.caption("⚠️ Caché no disponible")
     
     st.markdown("---")
-    st.caption("Desarrollado con ❤️ por SAVA Team")
-    st.caption("Optimizado para reducir costos de API")
+    st.caption("<small>Desarrollado con ❤️ por SAVA Team<br>Optimizado para reducir costos de API</small>", unsafe_allow_html=True)
     
     return use_cache, use_smart_batch
 
@@ -1132,7 +1266,7 @@ def main():
     
     st.markdown("---")
     
-    # Tabs MEJORADOS con más funcionalidades
+    # Tabs MEJORADOS - PROFESIONAL Y COMPACTO
     tabs = st.tabs([
         "📂 Análisis CSV",
         "🌐 Noticias en Vivo",
