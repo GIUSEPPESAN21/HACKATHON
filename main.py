@@ -713,12 +713,12 @@ def main():
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
                 # Vista previa mejorada
-                #with st.expander("👁️ Vista Previa de Datos", expanded=False):
-                 #   st.dataframe(
-                  #      df[['titular', 'fecha']].head(10),
-                   #     width='stretch',
-                    #    hide_index=True
- #                   )
+                with st.expander("", expanded=False):
+                    st.dataframe(
+                        df[['titular', 'fecha']].head(10),
+                        width='stretch',
+                        hide_index=True
+                   )
                 
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
