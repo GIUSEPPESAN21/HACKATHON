@@ -38,7 +38,7 @@ st.set_page_config(
 LOGO_URL = "https://raw.githubusercontent.com/GIUSEPPESAN21/LOGO-SAVA/main/LOGO.jpg"
 LOGO_COLIBRI_URL = "https://raw.githubusercontent.com/GIUSEPPESAN21/LOGO-SAVA/main/LOGO%20COLIBRI.png"
 
-# CSS PROFESIONAL MEJORADO - CORREGIDO
+# CSS PROFESIONAL MEJORADO CON MEJOR TIPOGRAFÍA
 st.markdown("""
     <style>
     /* Importar fuentes de Google */
@@ -48,19 +48,6 @@ st.markdown("""
     .main { 
         background: linear-gradient(135deg, #f5f7fa 0%, #e8f0fe 50%, #c3cfe2 100%);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        padding-top: 2rem !important;
-    }
-    
-    /* FIX: Evitar superposición de elementos */
-    .element-container {
-        position: relative !important;
-        z-index: 1 !important;
-    }
-    
-    /* FIX: Separación adecuada entre elementos */
-    .stMarkdown {
-        margin-bottom: 1rem !important;
-        clear: both !important;
     }
     
     /* Tipografía mejorada */
@@ -69,9 +56,6 @@ st.markdown("""
         font-weight: 600 !important;
         letter-spacing: -0.5px !important;
         color: #1a1a2e !important;
-        margin-top: 1.5rem !important;
-        margin-bottom: 1rem !important;
-        clear: both !important;
     }
     
     /* Texto general */
@@ -94,7 +78,6 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
         transition: all 0.3s ease !important;
         font-family: 'Inter', sans-serif !important;
-        margin: 0.5rem 0 !important;
     }
     .stButton>button:hover {
         transform: translateY(-2px) scale(1.02) !important;
@@ -117,11 +100,7 @@ st.markdown("""
         letter-spacing: -0.5px !important;
     }
     
-    /* FIX: Inputs mejorados con mejor espaciado */
-    .stTextInput, .stTextArea {
-        margin-bottom: 1rem !important;
-    }
-    
+    /* Inputs mejorados */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         font-family: 'Inter', sans-serif !important;
         font-size: 15px !important;
@@ -129,21 +108,10 @@ st.markdown("""
         border: 2px solid #e0e0e0 !important;
         padding: 10px 15px !important;
         transition: all 0.3s ease !important;
-        background: white !important;
-        width: 100% !important;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
         border-color: #667eea !important;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
-        outline: none !important;
-    }
-    
-    /* FIX: Labels con mejor visibilidad */
-    label {
-        font-weight: 500 !important;
-        margin-bottom: 0.5rem !important;
-        display: block !important;
-        color: #1a1a2e !important;
     }
     
     /* Tarjetas con sombra */
@@ -152,23 +120,12 @@ st.markdown("""
         border-radius: 15px;
         padding: 20px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-        margin-bottom: 1rem !important;
-    }
-    
-    /* FIX: Dataframe y tablas con mejor espaciado */
-    .stDataFrame {
-        margin: 1.5rem 0 !important;
-        padding: 1rem !important;
-        background: white !important;
-        border-radius: 12px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
     }
     
     /* Sidebar premium mejorado */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%) !important;
         color: white !important;
-        padding-top: 2rem !important;
     }
     [data-testid="stSidebar"] * {
         color: white !important;
@@ -198,11 +155,20 @@ st.markdown("""
         display: none !important;
         visibility: hidden !important;
     }
-    /* Ocultar keyboard_double_arrow_right */
+    /* Ocultar keyboard_double_arrow_right y todos los iconos de flecha */
     .keyboard_double_arrow_right,
+    .keyboard_arrow_right,
+    .keyboard_arrow_down,
+    .keyboard_arrow_up,
     [data-testid*="arrow"],
-    svg[data-testid*="arrow"] {
+    svg[data-testid*="arrow"],
+    svg[class*="arrow"],
+    .material-icons[class*="arrow"] {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
     }
     /* Ocultar controles de expansión del sidebar */
     section[data-testid="stSidebar"] > div:first-child button {
@@ -279,10 +245,6 @@ st.markdown("""
         color: white !important;
         border-radius: 8px !important;
     }
-    [data-testid="stSidebar"] .stTextInput>div>div>input::placeholder,
-    [data-testid="stSidebar"] .stTextArea>div>div>textarea::placeholder {
-        color: rgba(255, 255, 255, 0.5) !important;
-    }
     [data-testid="stSidebar"] .stTextInput>div>div>input:focus,
     [data-testid="stSidebar"] .stTextArea>div>div>textarea:focus {
         border-color: rgba(255, 255, 255, 0.5) !important;
@@ -295,11 +257,7 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
-    /* FIX: Tabs mejorados con mejor espaciado */
-    .stTabs {
-        margin: 1.5rem 0 !important;
-    }
-    
+    /* Tabs mejorados */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px;
         background-color: white;
@@ -367,24 +325,20 @@ st.markdown("""
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
     }
     
-    /* FIX: Tarjetas de noticias mejoradas - Sin superposición */
+    /* Tarjetas de noticias mejoradas - Más anchas y claras */
     .news-card {
         background: white !important;
         border-radius: 12px !important;
         padding: 20px !important;
-        margin-bottom: 20px !important;
+        margin-bottom: 15px !important;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
         border-left: 5px solid !important;
         transition: all 0.3s ease !important;
         width: 100% !important;
-        position: relative !important;
-        z-index: 1 !important;
-        clear: both !important;
     }
     .news-card:hover {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
         transform: translateY(-2px) !important;
-        z-index: 2 !important;
     }
     .news-card-positive {
         border-left-color: #27ae60 !important;
@@ -449,26 +403,124 @@ st.markdown("""
         background: rgba(102, 126, 234, 0.05) !important;
         border-radius: 8px !important;
         border-left: 3px solid #667eea !important;
-        margin-top: 10px !important;
     }
     
-    /* FIX: Expander con mejor espaciado */
+    /* === OCULTAR ICONOS DE EXPANDER Y EVITAR SOLAPAMIENTO === */
+    
+    /* Ocultar completamente el header del expander */
     .streamlit-expanderHeader {
-        background: white !important;
-        border-radius: 8px !important;
-        padding: 12px !important;
-        margin: 1rem 0 !important;
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
-    /* FIX: Contenedor principal con espaciado correcto */
+    /* Ocultar específicamente el icono keyboard_arrow_right */
+    .streamlit-expanderHeader svg,
+    .streamlit-expanderHeader [data-testid*="arrow"],
+    .streamlit-expanderHeader .keyboard_arrow_right,
+    svg[data-testid*="arrow"],
+    .keyboard_arrow_right,
+    .keyboard_arrow_down,
+    .keyboard_arrow_up {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+    
+    /* Ocultar cualquier texto o icono dentro del expander header */
+    .streamlit-expanderHeader * {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Asegurar que el contenido del expander tenga espaciado adecuado */
+    .streamlit-expanderContent {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+        padding: 1rem !important;
+    }
+    
+    /* Asegurar que los botones no se solapen con expanders */
+    .stButton {
+        margin-top: 1rem !important;
+        margin-bottom: 0.5rem !important;
+        clear: both !important;
+        position: relative !important;
+        z-index: 10 !important;
+    }
+    
+    /* Espaciado adicional después de expanders */
+    .element-container:has(.streamlit-expander) {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Asegurar que los botones tengan espacio suficiente y no se solapen */
+    [data-testid="column"] .stButton {
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
+        padding: 0.5rem 0 !important;
+    }
+    
+    /* Asegurar que no haya texto flotante sobre los botones */
+    .stButton button {
+        position: relative !important;
+        z-index: 100 !important;
+        overflow: visible !important;
+    }
+    
+    /* Ocultar cualquier elemento que pueda interferir con los botones */
+    .stButton::before,
+    .stButton::after {
+        content: none !important;
+    }
+    
+    /* Asegurar que los expanders no interfieran con elementos siguientes */
+    .streamlit-expander {
+        margin-bottom: 1.5rem !important;
+        clear: both !important;
+    }
+    
+    /* Ocultar cualquier texto o elemento que aparezca como "keyboard_arrow_right" */
+    text,
+    tspan,
+    .material-icons,
+    [class*="material"],
+    [class*="icon"] {
+        font-family: 'Inter', sans-serif !important;
+    }
+    
+    /* Asegurar que el contenido dentro de columnas no se solape */
+    [data-testid="column"] {
+        padding: 0 0.75rem !important;
+        margin-bottom: 1rem !important;
+        clear: both !important;
+    }
+    
+    /* Espaciado entre elementos en la sección de análisis CSV */
+    .element-container {
+        margin-bottom: 1rem !important;
+        clear: both !important;
+    }
+    
+    /* Mejorar visualización de noticias - Ancho completo */
+    .element-container {
+        max-width: 100% !important;
+    }
+    
+    /* Contenedor principal más ancho */
     .main .block-container {
         max-width: 1200px !important;
-        padding: 2rem 3rem !important;
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
     }
     
-    /* FIX: Asegurar separación entre secciones */
-    .stMarkdown + .stMarkdown {
-        margin-top: 1rem !important;
+    /* Tarjetas de noticias con mejor espaciado */
+    .news-card {
+        margin-bottom: 20px !important;
     }
     
     /* Asegurar que el texto del sidebar sea completamente visible */
@@ -504,26 +556,8 @@ st.markdown("""
         visibility: hidden !important;
         opacity: 0 !important;
     }
-    
-    /* FIX ESPECÍFICO: Evitar superposición de "Vista Previa de Datos" */
-    div[data-testid="stExpander"] {
-        margin: 1.5rem 0 !important;
-        position: relative !important;
-        z-index: auto !important;
-    }
-    
-    /* FIX: Selectbox y otros widgets */
-    .stSelectbox, .stMultiselect, .stNumberInput {
-        margin-bottom: 1rem !important;
-    }
-    
-    /* FIX: File uploader */
-    .stFileUploader {
-        margin: 1rem 0 !important;
-    }
-    
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # Funciones de autenticación
 def show_login_page():
@@ -758,7 +792,7 @@ def main():
     with tabs[0]:
         st.header("📂 Análisis Inteligente de CSV")
         
-        col_upload, col_info = st.columns([3, 2])
+        col_upload, col_info = st.columns([3, 1])
         
         with col_upload:
             uploaded_file = st.file_uploader(
@@ -783,13 +817,17 @@ def main():
             else:
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
-                # Vista previa mejorada
-                with st.expander("", expanded=True):
+                # Vista previa mejorada - Sin título visible para evitar solapamiento
+                with st.expander("", expanded=False):
+                    st.markdown("**👁️ Vista Previa de Datos**")
                     st.dataframe(
                         df[['titular', 'fecha']].head(10),
                         width='stretch',
                         hide_index=True
-                   )
+                    )
+                
+                # Espaciado antes de los botones
+                st.markdown("<br>", unsafe_allow_html=True)
                 
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
@@ -1388,6 +1426,8 @@ def main():
                         
                         # Mostrar detalles adicionales si existen
                         if 'details' in alert and alert['details']:
+                            # Espaciado antes del expander
+                            st.markdown("<br>", unsafe_allow_html=True)
                             with st.expander(f"📋 Ver detalles de {alert['title']}"):
                                 if isinstance(alert['details'], dict):
                                     for key, value in alert['details'].items():
@@ -1397,6 +1437,8 @@ def main():
                                                 st.caption(f"  • {item}")
                                         else:
                                             st.write(f"**{key}:** {value}")
+                            # Espaciado después del expander
+                            st.markdown("<br>", unsafe_allow_html=True)
                 else:
                     st.success("""
                     ✅ **¡Excelente! No se detectaron alertas críticas.**
