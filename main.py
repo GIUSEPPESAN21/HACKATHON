@@ -603,7 +603,9 @@ def main():
     with tabs[5]:
         st.header("🔔 Sistema de Alertas Inteligentes")
         
-        data_source = st.session_state.get('last_analysis') or st.session_state.get('web_analysis')
+        data_source = st.session_state.get('last_analysis')
+        if data_source is None:
+            data_source = st.session_state.get('web_analysis')
         
         if data_source is not None:
             if st.button("🔍 Generar Alertas", type="primary"):
@@ -640,7 +642,9 @@ def main():
     with tabs[6]:
         st.header("📊 Dashboard Ejecutivo")
         
-        data_source = st.session_state.get('last_analysis') or st.session_state.get('web_analysis')
+        data_source = st.session_state.get('last_analysis')
+        if data_source is None:
+            data_source = st.session_state.get('web_analysis')
         
         if data_source is not None:
             # Métricas principales
@@ -695,7 +699,9 @@ def main():
     with tabs[7]:
         st.header("📄 Exportación de Reportes")
         
-        data_source = st.session_state.get('last_analysis') or st.session_state.get('web_analysis')
+        data_source = st.session_state.get('last_analysis')
+        if data_source is None:
+            data_source = st.session_state.get('web_analysis')
         
         if data_source is not None:
             st.info(f"📊 {len(data_source)} noticias listas para exportar")
