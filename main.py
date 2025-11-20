@@ -157,10 +157,10 @@ st.markdown("""
     }
     /* Ocultar keyboard_double_arrow_right */
     .keyboard_double_arrow_right,
-    [data-testid*="arrow"],
-    svg[data-testid*="arrow"] {
-        display: none !important;
-    }
+    [data-testid="stSidebar"] [data-testid*="arrow"],
+[data-testid="stSidebar"] svg[data-testid*="arrow"] {
+    display: none !important;
+}
     /* Ocultar controles de expansión del sidebar */
     section[data-testid="stSidebar"] > div:first-child button {
         display: none !important;
