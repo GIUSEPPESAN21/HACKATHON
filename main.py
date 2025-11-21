@@ -636,8 +636,11 @@ st.markdown("""
         padding: 0.6rem 0.8rem !important;
     }
     
-    /* Reducir espaciado en dataframes - Asegurar visibilidad */
-    [data-testid="stDataFrame"] {
+    /* Reducir espaciado en dataframes - Asegurar visibilidad COMPLETA */
+    [data-testid="stDataFrame"],
+    [data-testid="stDataFrame"] *,
+    .stDataFrame,
+    .stDataFrame * {
         margin-top: 0.3rem !important;
         margin-bottom: 0.3rem !important;
         display: block !important;
@@ -645,6 +648,26 @@ st.markdown("""
         opacity: 1 !important;
         width: 100% !important;
         height: auto !important;
+        overflow: visible !important;
+    }
+    
+    /* Asegurar que las tablas dentro de dataframes sean visibles */
+    [data-testid="stDataFrame"] table,
+    .stDataFrame table {
+        display: table !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 100% !important;
+    }
+    
+    /* Asegurar que las celdas de tabla sean visibles */
+    [data-testid="stDataFrame"] td,
+    [data-testid="stDataFrame"] th,
+    .stDataFrame td,
+    .stDataFrame th {
+        display: table-cell !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     /* Reducir espaciado en spinners */
@@ -1122,20 +1145,17 @@ def main():
                     try:
                         # Verificar que el dataframe tenga datos
                         if df is not None and len(df) > 0:
+                            # Preparar el dataframe para mostrar
                             if 'titular' in df.columns and 'fecha' in df.columns:
-                                preview_df = df[['titular', 'fecha']].head(10).copy()
+                                preview_df = df[['titular', 'fecha']].head(10)
                             else:
                                 # Si no tiene esas columnas, mostrar las primeras columnas disponibles
-                                preview_df = df.head(10).copy()
+                                preview_df = df.head(10)
                             
                             # Asegurar que el dataframe no esté vacío
                             if len(preview_df) > 0:
-                                st.dataframe(
-                                    preview_df,
-                                    hide_index=True,
-                                    use_container_width=True,
-                                    height=300
-                                )
+                                # Mostrar el dataframe de forma directa - SIN parámetros que puedan causar problemas
+                                st.dataframe(preview_df)
                             else:
                                 st.info("No hay datos para mostrar en la vista previa")
                         else:
@@ -1144,9 +1164,10 @@ def main():
                         st.error(f"Error al mostrar la vista previa: {str(e)}")
                         # Intentar mostrar el dataframe completo como fallback
                         try:
-                            st.dataframe(df.head(10), use_container_width=True)
-                        except:
-                            st.error("No se pudo mostrar ningún dato")
+                            if df is not None and len(df) > 0:
+                                st.dataframe(df.head(10))
+                        except Exception as e2:
+                            st.error(f"No se pudo mostrar ningún dato: {str(e2)}")
                 
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
@@ -1999,42 +2020,53 @@ def main():
                     st.session_state['df_hist'] = None
         
         # Mostrar historial si está cargado
-        if st.session_state['historial_loaded'] and st.session_state['df_hist'] is not None:
+        if st.session_state.get('historial_loaded', False) and st.session_state.get('df_hist') is not None:
             df_hist = st.session_state['df_hist']
             
-            # Filtros
-            col_f1, col_f2 = st.columns(2)
-            with col_f1:
-                filter_sent = st.multiselect(
-                    "Filtrar por sentimiento",
-                    ['Positivo', 'Negativo', 'Neutro'],
-                    default=['Positivo', 'Negativo', 'Neutro'],
-                    key="filter_sentiment"
-                )
-            
-            # Filtrar datos
-            if 'sentimiento' in df_hist.columns:
-                df_filtered = df_hist[df_hist['sentimiento'].isin(filter_sent)].copy()
-            else:
-                df_filtered = df_hist.copy()
-                st.warning("⚠️ La columna 'sentimiento' no está disponible en el historial")
-            
-            # Mostrar dataframe
-            if len(df_filtered) > 0:
-                try:
-                    st.dataframe(
-                        df_filtered,
-                        use_container_width=True,
-                        height=400,
-                        hide_index=True
+            # Verificar que el dataframe tenga datos
+            if df_hist is not None and len(df_hist) > 0:
+                # Filtros
+                col_f1, col_f2 = st.columns(2)
+                with col_f1:
+                    filter_sent = st.multiselect(
+                        "Filtrar por sentimiento",
+                        ['Positivo', 'Negativo', 'Neutro'],
+                        default=['Positivo', 'Negativo', 'Neutro'],
+                        key="filter_sentiment"
                     )
-                except Exception as e:
-                    st.error(f"Error al mostrar el historial: {str(e)}")
-                    # Mostrar información básica como fallback
-                    st.write(f"Total de registros: {len(df_filtered)}")
-                    st.json(df_filtered.head(5).to_dict('records'))
+                
+                # Filtrar datos
+                if 'sentimiento' in df_hist.columns:
+                    df_filtered = df_hist[df_hist['sentimiento'].isin(filter_sent)]
+                else:
+                    df_filtered = df_hist
+                    st.warning("⚠️ La columna 'sentimiento' no está disponible en el historial")
+                
+                # Mostrar dataframe
+                if len(df_filtered) > 0:
+                    try:
+                        # Mostrar el dataframe de forma directa - SIN parámetros que puedan causar problemas
+                        st.dataframe(df_filtered)
+                    except Exception as e:
+                        st.error(f"Error al mostrar el historial: {str(e)}")
+                        # Mostrar información básica como fallback
+                        st.write(f"Total de registros: {len(df_filtered)}")
+                        st.write("Columnas disponibles:", list(df_filtered.columns))
+                        # Intentar mostrar como tabla HTML
+                        try:
+                            st.markdown(df_filtered.head(10).to_html(escape=False), unsafe_allow_html=True)
+                        except:
+                            # Último fallback: mostrar como JSON
+                            try:
+                                st.json(df_filtered.head(5).to_dict('records'))
+                            except:
+                                st.write("Primeras filas:")
+                                for idx, row in df_filtered.head(5).iterrows():
+                                    st.write(row.to_dict())
+                else:
+                    st.info("No hay registros que coincidan con los filtros seleccionados")
             else:
-                st.info("No hay registros que coincidan con los filtros seleccionados")
+                st.warning("El historial está vacío o no se pudo cargar correctamente")
 
 if __name__ == "__main__":
     main()
