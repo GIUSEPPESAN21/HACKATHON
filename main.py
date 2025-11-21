@@ -670,6 +670,58 @@ st.markdown("""
         opacity: 1 !important;
     }
     
+    /* CSS para st.table - Asegurar que se muestre correctamente */
+    [data-testid="stTable"],
+    .stTable,
+    table {
+        display: table !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 10px 0 !important;
+    }
+    
+    [data-testid="stTable"] td,
+    [data-testid="stTable"] th,
+    .stTable td,
+    .stTable th,
+    table td,
+    table th {
+        display: table-cell !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        padding: 8px 12px !important;
+        border: 1px solid #e0e0e0 !important;
+        text-align: left !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+    }
+    
+    [data-testid="stTable"] th,
+    .stTable th,
+    table th {
+        background-color: #f5f5f5 !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Asegurar que los iconos no se muestren grandes */
+    .stTable svg,
+    [data-testid="stTable"] svg,
+    table svg {
+        width: 16px !important;
+        height: 16px !important;
+        max-width: 16px !important;
+        max-height: 16px !important;
+    }
+    
+    /* Asegurar que los emojis no se muestren grandes */
+    .stTable .emoji,
+    [data-testid="stTable"] .emoji {
+        font-size: 16px !important;
+        line-height: 1 !important;
+    }
+    
     /* Reducir espaciado en spinners */
     .stSpinner {
         margin-top: 0.3rem !important;
@@ -1138,18 +1190,24 @@ def main():
             else:
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
-                # Vista previa - Mostrar automáticamente
+                # Vista previa - Mostrar automáticamente usando st.table que es más confiable
                 st.markdown("**👁️ Vista Previa de Datos**")
                 if df is not None and len(df) > 0:
-                    if 'titular' in df.columns and 'fecha' in df.columns:
-                        preview_df = df[['titular', 'fecha']].head(10)
-                    else:
-                        preview_df = df.head(10)
-                    
-                    if len(preview_df) > 0:
-                        st.dataframe(preview_df)
-                    else:
-                        st.info("No hay datos para mostrar")
+                    try:
+                        if 'titular' in df.columns and 'fecha' in df.columns:
+                            preview_df = df[['titular', 'fecha']].head(10)
+                        else:
+                            preview_df = df.head(10)
+                        
+                        if len(preview_df) > 0:
+                            # Usar st.table que es más simple y confiable
+                            st.table(preview_df)
+                        else:
+                            st.info("No hay datos para mostrar")
+                    except Exception as e:
+                        st.error(f"Error: {str(e)}")
+                        # Fallback: mostrar como texto
+                        st.write(df.head(10))
                 else:
                     st.warning("El dataframe está vacío")
                 
@@ -2024,9 +2082,14 @@ def main():
                 else:
                     df_filtered = df_hist
                 
-                # Mostrar dataframe directamente
+                # Mostrar dataframe usando st.table que es más confiable
                 if len(df_filtered) > 0:
-                    st.dataframe(df_filtered)
+                    try:
+                        st.table(df_filtered)
+                    except Exception as e:
+                        st.error(f"Error al mostrar: {str(e)}")
+                        # Fallback: mostrar como texto
+                        st.write(df_filtered)
                 else:
                     st.info("No hay registros que coincidan con los filtros")
             else:
