@@ -1138,36 +1138,27 @@ def main():
             else:
                 st.success(f"✅ Archivo cargado: {len(df)} noticias")
                 
-                # Vista previa mejorada - Mostrar automáticamente con opción de ocultar
-                show_preview = st.checkbox("👁️ Mostrar Vista Previa de Datos", value=True, key="preview_checkbox")
-                if show_preview:
-                    # Asegurar que el dataframe se muestre correctamente
-                    try:
-                        # Verificar que el dataframe tenga datos
-                        if df is not None and len(df) > 0:
-                            # Preparar el dataframe para mostrar
-                            if 'titular' in df.columns and 'fecha' in df.columns:
-                                preview_df = df[['titular', 'fecha']].head(10)
-                            else:
-                                # Si no tiene esas columnas, mostrar las primeras columnas disponibles
-                                preview_df = df.head(10)
-                            
-                            # Asegurar que el dataframe no esté vacío
-                            if len(preview_df) > 0:
-                                # Mostrar el dataframe de forma directa - SIN parámetros que puedan causar problemas
-                                st.dataframe(preview_df)
-                            else:
-                                st.info("No hay datos para mostrar en la vista previa")
+                # Vista previa mejorada - Usar botón para mostrar datos
+                if 'show_preview_data' not in st.session_state:
+                    st.session_state['show_preview_data'] = False
+                
+                if st.button("👁️ Mostrar Vista Previa de Datos", key="btn_show_preview"):
+                    st.session_state['show_preview_data'] = True
+                
+                if st.session_state['show_preview_data']:
+                    # Mostrar el dataframe directamente
+                    if df is not None and len(df) > 0:
+                        if 'titular' in df.columns and 'fecha' in df.columns:
+                            preview_df = df[['titular', 'fecha']].head(10)
                         else:
-                            st.warning("El dataframe está vacío")
-                    except Exception as e:
-                        st.error(f"Error al mostrar la vista previa: {str(e)}")
-                        # Intentar mostrar el dataframe completo como fallback
-                        try:
-                            if df is not None and len(df) > 0:
-                                st.dataframe(df.head(10))
-                        except Exception as e2:
-                            st.error(f"No se pudo mostrar ningún dato: {str(e2)}")
+                            preview_df = df.head(10)
+                        
+                        if len(preview_df) > 0:
+                            st.dataframe(preview_df)
+                        else:
+                            st.info("No hay datos para mostrar")
+                    else:
+                        st.warning("El dataframe está vacío")
                 
                 col_btn1, col_btn2, col_btn3 = st.columns(3)
                 
@@ -2019,54 +2010,42 @@ def main():
                     st.session_state['historial_loaded'] = False
                     st.session_state['df_hist'] = None
         
-        # Mostrar historial si está cargado
+        # Mostrar historial si está cargado - Usar botón para mostrar
         if st.session_state.get('historial_loaded', False) and st.session_state.get('df_hist') is not None:
             df_hist = st.session_state['df_hist']
             
-            # Verificar que el dataframe tenga datos
             if df_hist is not None and len(df_hist) > 0:
-                # Filtros
-                col_f1, col_f2 = st.columns(2)
-                with col_f1:
-                    filter_sent = st.multiselect(
-                        "Filtrar por sentimiento",
-                        ['Positivo', 'Negativo', 'Neutro'],
-                        default=['Positivo', 'Negativo', 'Neutro'],
-                        key="filter_sentiment"
-                    )
+                # Botón para mostrar historial
+                if 'show_history_data' not in st.session_state:
+                    st.session_state['show_history_data'] = False
                 
-                # Filtrar datos
-                if 'sentimiento' in df_hist.columns:
-                    df_filtered = df_hist[df_hist['sentimiento'].isin(filter_sent)]
-                else:
-                    df_filtered = df_hist
-                    st.warning("⚠️ La columna 'sentimiento' no está disponible en el historial")
+                if st.button("📊 Mostrar Historial", key="btn_show_history"):
+                    st.session_state['show_history_data'] = True
                 
-                # Mostrar dataframe
-                if len(df_filtered) > 0:
-                    try:
-                        # Mostrar el dataframe de forma directa - SIN parámetros que puedan causar problemas
+                if st.session_state['show_history_data']:
+                    # Filtros
+                    col_f1, col_f2 = st.columns(2)
+                    with col_f1:
+                        filter_sent = st.multiselect(
+                            "Filtrar por sentimiento",
+                            ['Positivo', 'Negativo', 'Neutro'],
+                            default=['Positivo', 'Negativo', 'Neutro'],
+                            key="filter_sentiment"
+                        )
+                    
+                    # Filtrar datos
+                    if 'sentimiento' in df_hist.columns:
+                        df_filtered = df_hist[df_hist['sentimiento'].isin(filter_sent)]
+                    else:
+                        df_filtered = df_hist
+                    
+                    # Mostrar dataframe directamente
+                    if len(df_filtered) > 0:
                         st.dataframe(df_filtered)
-                    except Exception as e:
-                        st.error(f"Error al mostrar el historial: {str(e)}")
-                        # Mostrar información básica como fallback
-                        st.write(f"Total de registros: {len(df_filtered)}")
-                        st.write("Columnas disponibles:", list(df_filtered.columns))
-                        # Intentar mostrar como tabla HTML
-                        try:
-                            st.markdown(df_filtered.head(10).to_html(escape=False), unsafe_allow_html=True)
-                        except:
-                            # Último fallback: mostrar como JSON
-                            try:
-                                st.json(df_filtered.head(5).to_dict('records'))
-                            except:
-                                st.write("Primeras filas:")
-                                for idx, row in df_filtered.head(5).iterrows():
-                                    st.write(row.to_dict())
-                else:
-                    st.info("No hay registros que coincidan con los filtros seleccionados")
+                    else:
+                        st.info("No hay registros que coincidan con los filtros")
             else:
-                st.warning("El historial está vacío o no se pudo cargar correctamente")
+                st.warning("El historial está vacío")
 
 if __name__ == "__main__":
     main()
