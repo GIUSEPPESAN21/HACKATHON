@@ -29,9 +29,9 @@ def main():
     st.title("📊 Monitor de Riesgos Agroindustriales - R9")
     st.markdown("Sistema inteligente de clasificación de noticias para el Valle del Cauca.")
     
+    # Añadimos una nueva pestaña para la búsqueda web
     tab1, tab2, tab3, tab4 = st.tabs(["📂 Análisis CSV", "🌐 Noticias en Vivo", "📈 Dashboard", "🗄️ Historial"])
 
-    # Inicializamos el analizador
     analyzer = AgroSentimentAnalyzer()
 
     # --- TAB 1: ANÁLISIS CSV ---
@@ -48,10 +48,10 @@ def main():
                 st.dataframe(df[['titular', 'fecha']], use_container_width=True, hide_index=True)
                 
                 if st.button("🧠 Ejecutar Análisis Avanzado", type="primary"):
-                    # CORRECCIÓN AQUÍ: Verificamos api_key en lugar de model
-                    if analyzer.api_key:
+                    if analyzer.model:
                         with st.spinner('Identificando palabras clave y generando argumentos...'):
                             progress = st.progress(0)
+                            # Ahora recibimos dos listas: sentimientos y explicaciones
                             sents, expls = analyzer.analyze_batch(df, progress)
                             
                             df['sentimiento_ia'] = sents
@@ -60,27 +60,20 @@ def main():
                             st.session_state['last_analysis'] = df
                             st.success("¡Análisis Inteligente Completado!")
                     else:
-                        st.error("Error: No se encontró la API Key de Gemini en los secretos.")
+                        st.error("Error de API Key")
 
         if 'last_analysis' in st.session_state:
             df_res = st.session_state['last_analysis']
             st.divider()
             
+            # Mostrar resultados con columnas expandibles para la explicación
             st.subheader("Resultados Clasificados")
             
-            # Mostrar estadísticas rápidas antes de los resultados
-            total_res = len(df_res)
-            pos_res = len(df_res[df_res['sentimiento_ia'] == 'Positivo'])
-            neg_res = len(df_res[df_res['sentimiento_ia'] == 'Negativo'])
-            neu_res = len(df_res[df_res['sentimiento_ia'] == 'Neutro'])
-            
-            st.info(f"📊 **Resumen**: {pos_res} Positivas | {neg_res} Negativas | {neu_res} Neutras (Total: {total_res})")
-            
+            # Iterar para mostrar formato bonito
             for index, row in df_res.iterrows():
                 color = "gray"
                 if row['sentimiento_ia'] == 'Positivo': color = "green"
                 elif row['sentimiento_ia'] == 'Negativo': color = "red"
-                elif row['sentimiento_ia'] == 'Neutro': color = "gray"
                 
                 with st.expander(f":{color}[{row['sentimiento_ia']}] - {row['titular']}"):
                     st.write(f"**Argumento IA:** {row['explicacion_ia']}")
@@ -91,17 +84,17 @@ def main():
                 if success: st.success(msg)
                 else: st.error(msg)
 
-    # --- TAB 2: BÚSQUEDA WEB ---
+    # --- TAB 2: BÚSQUEDA WEB (NUEVO) ---
     with tab2:
         st.header("🔍 Radar de Noticias en Tiempo Real")
         st.markdown("Busca eventos recientes en la web y clasifícalos al instante.")
         
         col_search, col_btn = st.columns([3, 1])
         with col_search:
-            query = st.text_input("Tema de búsqueda", value="Sector agroindustria Valle del Cauca")
+            query = st.text_input("Tema de búsqueda", value="Sector agroindustrial Valle del Cauca")
         with col_btn:
-            st.write("") 
-            st.write("") 
+            st.write("") # Espacio
+            st.write("") # Espacio
             search_trigger = st.button("Buscar y Analizar", use_container_width=True)
             
         if search_trigger:
@@ -136,6 +129,7 @@ def main():
 
     # --- TAB 3: DASHBOARD ---
     with tab3:
+        # Combinar datos si existen
         data_source = None
         if 'last_analysis' in st.session_state:
             data_source = st.session_state['last_analysis']
@@ -145,29 +139,19 @@ def main():
             st.caption("Mostrando datos de la búsqueda Web reciente.")
             
         if data_source is not None:
-            # Mejora: Mostrar las tres categorías de sentimiento
-            col1, col2, col3, col4 = st.columns(4)
+            col1, col2, col3 = st.columns(3)
             total = len(data_source)
             pos = len(data_source[data_source['sentimiento_ia'] == 'Positivo'])
             neg = len(data_source[data_source['sentimiento_ia'] == 'Negativo'])
-            neu = len(data_source[data_source['sentimiento_ia'] == 'Neutro'])
             
-            col1.metric("Total Analizadas", total)
-            col2.metric("🟢 Positivas", pos, delta=f"{round(pos/total*100, 1)}%" if total > 0 else "0%")
-            col3.metric("🔴 Negativas", neg, delta=f"{round(neg/total*100, 1)}%" if total > 0 else "0%")
-            col4.metric("⚪ Neutras", neu, delta=f"{round(neu/total*100, 1)}%" if total > 0 else "0%")
-            
-            # Validación: Alertar si todas son neutras (posible error)
-            if total > 0 and neu == total:
-                st.warning("⚠️ **Advertencia**: Todas las noticias fueron clasificadas como Neutras. Esto puede indicar un problema en la clasificación. Verifica los logs.")
-            elif total > 0 and neu > total * 0.8:
-                st.info("ℹ️ Más del 80% de las noticias son Neutras. Considera revisar si el análisis está funcionando correctamente.")
+            col1.metric("Noticias Analizadas", total)
+            col2.metric("Positivas", pos)
+            col3.metric("Negativas", neg)
             
             fig = px.pie(data_source, names='sentimiento_ia', 
                          color='sentimiento_ia',
                          color_discrete_map={'Positivo':'#2ecc71', 'Negativo':'#e74c3c', 'Neutro':'#bdc3c7'},
-                         hole=0.4,
-                         title="Distribución de Sentimientos")
+                         hole=0.4)
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Realiza un análisis (CSV o Web) para ver el Dashboard.")
