@@ -206,17 +206,15 @@ IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin 
         # 🚀 OPTIMIZACIÓN 2: Priorizar modelos FLASH (más rápidos y baratos)
         # Lista ordenada por COSTO y VELOCIDAD (Flash < Pro)
         candidates = [
-            "gemini-2.0-flash-exp",    # Experimental pero más barato (prioridad 1)
-            "gemini-2.0-flash",        # Modelo estable y económico (prioridad 2)
-            "gemini-1.5-flash",        # Fallback flash económico
-            "gemini-1.5-flash-latest", # Última versión flash
+            "gemini-flash-latest",      # Alias oficial de Google: siempre apunta al Flash vigente
+            "gemini-flash-lite-latest", # Alias oficial: Flash-Lite vigente (fallback)
         ]
         
         # Si tenemos modelos en cache que funcionaron antes, priorizarlos
         if self.available_models_cache:
             # Filtrar modelos conocidos que funcionan bien
             preferred_models = [m for m in self.available_models_cache 
-                               if any(x in m for x in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-pro"]) 
+                               if any(x in m for x in ["gemini-flash-latest", "gemini-3", "gemini-2.5-flash"]) 
                                and "exp" not in m.lower()]  # Evitar experimentales con problemas de cuota
             if preferred_models:
                 # Insertar modelos preferidos al inicio
@@ -300,7 +298,7 @@ IMPORTANTE: Responde SOLO con las dos líneas (CLASIFICACIÓN y ARGUMENTO), sin 
             # Filtrar modelos estables (evitar exp, preview, etc. que pueden tener problemas)
             stable_models = [m for m in available_models 
                            if not any(x in m.lower() for x in ["exp", "preview", "experimental"])
-                           and any(x in m for x in ["gemini-2.5", "gemini-2.0", "gemini-pro"])]
+                           and any(x in m for x in ["gemini-flash-latest", "gemini-3", "gemini-2.5"])]
             
             # Si no hay estables, usar los disponibles pero evitar los que sabemos que fallan
             if not stable_models:
@@ -505,10 +503,8 @@ IMPORTANTE: Responde SOLO con las líneas numeradas, sin texto adicional antes o
         
         # Intentar con modelos económicos primero
         candidates = [
-            "gemini-2.0-flash-exp",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-latest",
+            "gemini-flash-latest",      # Alias oficial de Google: siempre apunta al Flash vigente
+            "gemini-flash-lite-latest", # Alias oficial: Flash-Lite vigente (fallback)
         ]
         
         # Ajustar tokens según cantidad de noticias
@@ -620,7 +616,7 @@ RESPONDE EN ESTE FORMATO EXACTO (una línea por noticia):
             # Intentar con modelo más económico primero
             try:
                 model = genai.GenerativeModel(
-                    "gemini-2.0-flash-exp",  # Más barato para batches
+                    "gemini-flash-latest",  # Alias oficial: Flash vigente
                     generation_config={
                         "temperature": 0.1,
                         "max_output_tokens": 500,  # Suficiente para 5 noticias

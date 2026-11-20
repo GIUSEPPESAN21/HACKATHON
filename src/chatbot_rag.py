@@ -23,7 +23,7 @@ class AgriNewsBot:
         genai.configure(api_key=api_key)
         
         # Usar modelo económico para chat
-        self.chat_model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        self.chat_model = genai.GenerativeModel('gemini-flash-latest')
         
         # Historial de conversación
         self.conversation_history = []
